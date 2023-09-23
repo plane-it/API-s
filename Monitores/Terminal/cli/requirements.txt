@@ -1,0 +1,7 @@
+keyboard==0.13.5
+mysql==0.0.3
+mysql-connector==2.2.9
+mysqlclient==2.2.0
+pick==2.2.0
+psutil==5.9.5
+python-dotenv==1.0.0

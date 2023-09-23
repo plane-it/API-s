@@ -1,0 +1,4 @@
+  host="localhost",
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWD"),
+    database=os.getenv("DB_DATABASE")
