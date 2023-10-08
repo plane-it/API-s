@@ -4,14 +4,14 @@ from time import sleep as s
 import psutil as ps
 import mysql.connector
 
-tDados = mysql.connector.connect(
+DB = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="lucas-00123969130980362",
-    database="monitorDeDados"
+    password="",
+    database="planeit"
 )
 
-mycursor = tDados.cursor()
+mycursor = DB.cursor()
 
 root = Tk()
 root.title("Monitor de Performance")
@@ -84,6 +84,82 @@ for coluna in colunas:
     
     indiceGrid += 1
 
+# ================================================================= Funções de inserção no banco 
+def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoCPUFisc,1,1)
+
+    mycursor.execute(sql, val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoCPULogc,1,1)
+ 
+    mycursor.execute(sql,val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoCPUFreq,1,4)
+  
+    mycursor.execute(sql,val)
+    DB.commit()
+  
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoCPUPercent,1,4)
+
+    mycursor.execute(sql,val)
+    DB.commit() 
+
+
+def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
+
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoHDNumParcs,3,1)
+       
+    mycursor.execute(sql, val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoHDTotal,3,2)
+ 
+    mycursor.execute(sql,val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoHDAtual,3,2)
+  
+    mycursor.execute(sql,val)
+    DB.commit()
+  
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoHDPercent,3,5)
+
+    mycursor.execute(sql,val)
+    DB.commit() 
+
+def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoRAMTotal,2,1)
+       
+    mycursor.execute(sql, val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoRAMAtual,2,3)
+ 
+    mycursor.execute(sql,val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoRAMPercent,2,3)
+  
+    mycursor.execute(sql,val)
+    DB.commit()
+  
+
+
 # Renderização da parte gráfica =================================================================
 while(True):
     dadoCPUFisc = ps.cpu_count(False)
@@ -96,7 +172,7 @@ while(True):
     dadoHDAtual = round((ps.disk_usage("/").used)*10**-9,2) 
     dadoHDPercent = ps.disk_usage("/").percent
 
-    dadoRAMTot = round((ps.virtual_memory().total)*10**-9,2)
+    dadoRAMTotal = round((ps.virtual_memory().total)*10**-9,2)
     dadoRAMAtual = round((ps.virtual_memory().used)*10**-9,2)
     dadoRAMPercent = ps.virtual_memory().percent
 
@@ -110,16 +186,12 @@ while(True):
     dados[1][2].set(str(dadoHDAtual)+"GB")
     dados[1][3].set(str(dadoHDPercent)+"%")
     
-    dados[2][0].set(str(dadoRAMTot)+"GB")
+    dados[2][0].set(str(dadoRAMTotal)+"GB")
     dados[2][1].set(str(dadoRAMAtual)+"GB")
     dados[2][2].set(str(dadoRAMPercent)+"%")
     root.update()
     s(int(tempoAtualizacao.get()))
 
-    sql = "INSERT INTO dados VALUES (null, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())"
-    val = (dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent,dadoHDNumParcs,dadoHDTotal,dadoHDAtual ,dadoHDPercent,dadoRAMTot,dadoRAMAtual,dadoRAMPercent )
-    mycursor.execute(sql, val)
-
-    tDados.commit()
-
-    print(mycursor.rowcount, "tupla inserida.")
+    inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent)
+    inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent)
+    inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent)

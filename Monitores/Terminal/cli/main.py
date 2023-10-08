@@ -16,7 +16,7 @@ load_dotenv()
 DB = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="lucas-00123969130980362",
+    password="",
     database="planeit"
 )
 
@@ -38,8 +38,82 @@ if len(myresult) > 0:
 else:
     print("Erro: Usuário não encontrado!")
 
-# ================================================================= Configurações do programa 
+# ================================================================= Funções de inserção no banco 
+def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoCPUFisc,1,1)
 
+    mycursor.execute(sql, val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoCPULogc,1,1)
+ 
+    mycursor.execute(sql,val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoCPUFreq,1,4)
+  
+    mycursor.execute(sql,val)
+    DB.commit()
+  
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoCPUPercent,1,4)
+
+    mycursor.execute(sql,val)
+    DB.commit() 
+
+
+def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
+
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoHDNumParcs,3,1)
+       
+    mycursor.execute(sql, val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoHDTotal,3,2)
+ 
+    mycursor.execute(sql,val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoHDAtual,3,2)
+  
+    mycursor.execute(sql,val)
+    DB.commit()
+  
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoHDPercent,3,5)
+
+    mycursor.execute(sql,val)
+    DB.commit() 
+
+def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoRAMTotal,2,1)
+       
+    mycursor.execute(sql, val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoRAMAtual,2,3)
+ 
+    mycursor.execute(sql,val)
+    DB.commit()
+    
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    val = (dadoRAMPercent,2,3)
+  
+    mycursor.execute(sql,val)
+    DB.commit()
+  
+
+# ================================================================= Configurações do programa
 while isRunning:
     opcoesInicio = ['Verificar Dados', 'Configurações', 'Sair']
 
@@ -60,7 +134,7 @@ while isRunning:
             dadoHDAtual = round((ps.disk_usage("/").used)*10**-9,2) if user.HDAtual else None
             dadoHDPercent = ps.disk_usage("/").percent if user.HDPercent else None
 
-            dadoRAMTot = round((ps.virtual_memory().total)*10**-9,2) if user.RAMTot else None
+            dadoRAMTotal = round((ps.virtual_memory().total)*10**-9,2) if user.RAMTot else None
             dadoRAMAtual = round((ps.virtual_memory().used)*10**-9,2) if user.RAMAtual else None
             dadoRAMPercent = ps.virtual_memory().percent if user.RAMPercent else None
             
@@ -84,32 +158,22 @@ while isRunning:
                 
                                     MEMÓRIA
     ===========================================================================
-            | Quantidade total de RAM: {dadoRAMTot} GB
+            | Quantidade total de RAM: {dadoRAMTotal} GB
             | Uso atua de RAM: {dadoRAMAtual} GB
             | Porcentagem de uso: {dadoRAMPercent} %
     ===========================================================================
 
     (Pressione [ESC] para voltar)
                 """)
+    
+            inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent)
+            inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent)
+            inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent)
+    
             if k.read_key() == 'esc':
                 break
-            
-            sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), 1, 1)"
-            val = (str(dadoCPUFisc))
 
-            mycursor.execute(sql, val)
-            DB.commit()
-
-
-
-            """  sql = "INSERT INTO dados VALUES (null, 1, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())"
-            val = (dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent,dadoHDNumParcs,dadoHDTotal,dadoHDAtual ,dadoHDPercent,dadoRAMTot,dadoRAMAtual,dadoRAMPercent )
-            
-            mycursor.execute(sql, val)
-
-            DB.commit()
-
-            t.sleep(1)  """
+            t.sleep(1)
 
     
 # ================================================================= Configurações
