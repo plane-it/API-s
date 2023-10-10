@@ -16,7 +16,7 @@ load_dotenv()
 DB = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="",
+    password="lucas-00123969130980362",
     database="planeit"
 )
 
@@ -126,10 +126,11 @@ while isRunning:
         while True:
             dadoCPUFisc = ps.cpu_count(False) if user.CPUFisc else None
             dadoCPULogc = ps.cpu_count(True) if user.CPULogc else None
-            dadoCPUFreq = ps.cpu_freq(False).current if user.CPUFreq else None
-            dadoCPUPercent = round(100-ps.cpu_times_percent(interval=1)[2], 1) if user.CPUPercent else None
+            dadoCPUFreq = round(ps.cpu_freq(False).current, 2) if user.CPUFreq else None
+            dadoCPUPercent = round(ps.cpu_percent(), 2) if user.CPUPercent else None
 
-            dadoHDNumParcs = len(ps.disk_partitions(True)) if user.HDNumParcs else None
+            disks = ps.disk_partitions()
+            dadoHDNumParcs = len(disks) if user.HDNumParcs else None
             dadoHDTotal = round((ps.disk_usage("/").total)*10**-9,2) if user.HDTotal else None
             dadoHDAtual = round((ps.disk_usage("/").used)*10**-9,2) if user.HDAtual else None
             dadoHDPercent = ps.disk_usage("/").percent if user.HDPercent else None
