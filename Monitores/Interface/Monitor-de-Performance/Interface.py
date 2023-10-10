@@ -164,10 +164,11 @@ def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
 while(True):
     dadoCPUFisc = ps.cpu_count(False)
     dadoCPULogc = ps.cpu_count(True)
-    dadoCPUFreq = ps.cpu_freq(False).current
-    dadoCPUPercent = round(100-ps.cpu_times_percent(interval=1)[2],1)
+    dadoCPUFreq = round(ps.cpu_freq(False).current, 2)
+    dadoCPUPercent = round(ps.cpu_percent(), 2)
 
-    dadoHDNumParcs = len(ps.disk_partitions(True))
+    disks = ps.disk_partitions()
+    dadoHDNumParcs = len(disks)
     dadoHDTotal = round((ps.disk_usage("/").total)*10**-9,2)
     dadoHDAtual = round((ps.disk_usage("/").used)*10**-9,2) 
     dadoHDPercent = ps.disk_usage("/").percent
