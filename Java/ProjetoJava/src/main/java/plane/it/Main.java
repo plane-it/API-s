@@ -70,15 +70,13 @@ public class Main {
                         """);
 
                         int opcaoSist = leitorTexto.nextInt();
-                        List<Processo> processoGrupos = looca.getGrupoDeProcessos().getProcessos();
+                        List<ProcessoGrupo> processoGrupos = (List<ProcessoGrupo>) looca.getGrupoDeProcessos();
 
                         List<Volume> volumes = looca.getGrupoDeDiscos().getVolumes();
 
                         switch (opcaoSist){
                             case 1:
                                 System.out.println(looca.getSistema().getSistemaOperacional());
-                                System.out.println(looca.getSistema().getFabricante());
-                                System.out.println(looca.getSistema().getArquitetura());
                                 break;
 
                             case 2:
@@ -90,6 +88,8 @@ public class Main {
                                 System.out.println(looca.getProcessador().getNome());
                                 System.out.println(looca.getProcessador().getFrequencia());
                                 System.out.println(looca.getProcessador().getUso());
+                                System.out.println(looca.getProcessador().getNumeroCpusFisicas());
+                                System.out.println(looca.getProcessador().getNumeroCpusLogicas());
                                 break;
 
                             case 4:
@@ -115,10 +115,8 @@ public class Main {
                                 break;
 
                             case 6:
-                                for (Processo processo : processoGrupos){
-                                    System.out.println(processo.getUsoCpu());
-                                    System.out.println(processo.getUsoMemoria());
-                                    System.out.println(processo.getMemoriaVirtualUtilizada());
+                                for (ProcessoGrupo processo : processoGrupos){
+                                    System.out.println(processo.getTotalProcessos());
                                 }
 
                                 break;
@@ -127,8 +125,6 @@ public class Main {
 
                                 //sistema
                                 System.out.println(looca.getSistema().getSistemaOperacional());
-                                System.out.println(looca.getSistema().getFabricante());
-                                System.out.println(looca.getSistema().getArquitetura());
 
                                 //memória
                                 looca.getMemoria();
@@ -137,6 +133,8 @@ public class Main {
                                 System.out.println(looca.getProcessador().getNome());
                                 System.out.println(looca.getProcessador().getFrequencia());
                                 System.out.println(looca.getProcessador().getUso());
+                                System.out.println(looca.getProcessador().getNumeroCpusFisicas());
+                                System.out.println(looca.getProcessador().getNumeroCpusLogicas());
 
                                 //temperatura
                                 looca.getTemperatura();
@@ -152,10 +150,8 @@ public class Main {
                                 }
 
                                 //processos
-                                for (Processo processo : processoGrupos){
-                                    System.out.println(processo.getUsoCpu());
-                                    System.out.println(processo.getUsoMemoria());
-                                    System.out.println(processo.getMemoriaVirtualUtilizada());
+                                for (ProcessoGrupo processo : processoGrupos){
+                                    System.out.println(processo.getTotalProcessos());
                                 }
 
                                 break;
