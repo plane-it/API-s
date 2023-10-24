@@ -43,32 +43,32 @@ else:
 # ================================================================= Funções de inserção no banco 
 def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoCPUFisc,1,1,1)
 
     mycursor.execute(sql, val)
     DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoCPULogc,1,1,1)
  
     mycursor.execute(sql,val)
     DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoCPUFreq,1,1,1)
   
     mycursor.execute(sql,val)
     DB.commit()
   
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoCPUPercent,1,1,1)
 
     mycursor.execute(sql,val)
     DB.commit() 
 
     if(platform.uname().system != 'Windows'):
-        sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s)"
+        sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
         val = (ps.sensors_temperatures(fahrenheit=False),1,1,1)
 
         mycursor.execute(sql,val)
@@ -76,25 +76,25 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
 
 def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
 
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoHDNumParcs,3,1,1)
        
     mycursor.execute(sql, val)
     DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoHDTotal,3,1,1)
  
     mycursor.execute(sql,val)
     DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoHDAtual,3,1,1)
   
     mycursor.execute(sql,val)
     DB.commit()
   
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoHDPercent,3,1,1)
 
     mycursor.execute(sql,val)
@@ -102,19 +102,19 @@ def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
 
 def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoRAMTotal,2,1,1)
        
     mycursor.execute(sql, val)
     DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoRAMAtual,2,1,1)
  
     mycursor.execute(sql,val)
     DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s,%s)"
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     val = (dadoRAMPercent,2,1,1)
   
     mycursor.execute(sql,val)

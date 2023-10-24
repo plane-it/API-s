@@ -2,6 +2,7 @@ package plane.it;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Usuario {
 
@@ -9,9 +10,6 @@ public class Usuario {
     private String nome;
     private  String email;
     private String senha;
-
-
-
 
 
     public Usuario() {
@@ -25,46 +23,34 @@ public class Usuario {
 
     }
 
-    public Boolean autenticaCPF(String cpf, String email){
-        Boolean autenticado = false;
-        if (!cpf.equals(getCpf()) && !email.equals(getEmail())){
-            autenticado = true;
-        } else {
-            autenticado = false;
+    public void AutenticarUsuario(Menu menus, OperacoesBanco operacoesBanco){
+        Scanner leitorTexto = new Scanner(System.in);
+
+        while (true) {
+            menus.menuBoasVindas();
+            System.out.println("Informe seu email: ");
+            String email = leitorTexto.nextLine();
+
+            System.out.println("Informe sua senha: ");
+            String senha = leitorTexto.nextLine();
+
+            if (!operacoesBanco.autenticarUsuario(senha, email)) {
+
+                System.out.println("\nSenha ou email incorretos, digite corretamente para realizar o login \n");
+
+            }else{
+                break;
+            }
         }
-        return autenticado;
     }
 
-
-    public String getCpf() {
-        return cpf;
-    }
-
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
+    @Override
+    public String toString() {
+        return "Usuario{" +
+                "cpf='" + cpf + '\'' +
+                ", nome='" + nome + '\'' +
+                ", email='" + email + '\'' +
+                ", senha='" + senha + '\'' +
+                '}';
     }
 }

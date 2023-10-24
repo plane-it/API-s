@@ -9,10 +9,10 @@ public class Conexao {
 
     public Conexao() {
         BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName("com.mysql.cj.jdbc.Drive");
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         dataSource.setUrl("jdbc:mysql://localhost/planeit");
         dataSource.setUsername("root");
-        dataSource.setPassword("sherlock15!");
+        dataSource.setPassword("0108Oliver");
 
         conexaoDoBanco = new JdbcTemplate(dataSource);
     }
