@@ -18,7 +18,7 @@ load_dotenv()
 DB = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="0108Oliver",
+    password="12345",
     database="planeit"
 )
 
@@ -31,12 +31,71 @@ user = usuario.Usuario(
 )
 
 mycursor.execute(f"SELECT * FROM tbColaborador WHERE email = '{user.usuario}' AND senha = '{user.senha}'") 
-myresult = mycursor.fetchall()
+resultadoColaborador = mycursor.fetchall()
 
 isRunning = False
 
-if len(myresult) > 0:
-    isRunning = True
+if len(resultadoColaborador) > 0 :
+    fkEmpresa = resultadoColaborador[0][-2]
+
+    mycursor.execute(f"SELECT codAutentic, idServ FROM tbServidor JOIN tbAeroporto ON fkAeroporto = idAeroporto JOIN tbEmpresa ON fkEmpresa = idEmpr WHERE idEmpr = {fkEmpresa};")
+    resultadoServidores = mycursor.fetchall()
+    
+    codigoServ = input("Digite o código do servidor: ")
+    
+    for resultado in resultadoServidores:
+        
+        if (codigoServ == resultado[0]) : 
+            print("Servidor encontrado!")
+            fkServidor = resultado[1]
+            
+            print("Buscando componentes...")
+            mycursor.execute(f"SELECT idComp, fktipoComponente FROM tbComponente WHERE fkServ = {fkServidor};")
+            resultadoComponentes = mycursor.fetchall()
+            
+            for resultado in resultadoComponentes :
+                fkComponente = resultado[0]
+                tipoComponente = resultado[1]
+                
+                if (tipoComponente == 1) :
+                    fkCpu = fkComponente
+                if (tipoComponente == 2) :
+                    fkRam = fkComponente
+                if (tipoComponente == 3) :
+                    fkDisco = fkComponente
+            
+            if (fkCpu is not None or fkRam is not None or fkDisco is not None) :
+                print("Componentes encontrados!")
+                print("Buscando métricas")
+                
+                if (fkCpu is not None) :
+                    mycursor.execute(f"SELECT valor, fkUnidadeMedida FROM tbMetrica WHERE fkComponente = {fkCpu};")
+                    metricasCPU = mycursor.fetchall()
+                    
+                    for resultado in metricasCPU :
+                        if (resultado[1] == 1) :
+                            cpuTempLimite = resultado[0]
+                        else :
+                            cpuFreqLimite = resultado[0]
+                            
+                if (fkRam is not None) :
+                    mycursor.execute(f"SELECT valor FROM tbMetrica WHERE fkComponente = {fkRam};")
+                    metricasRam = mycursor.fetchall()
+                    
+                    ramGbLimite = metricasRam[0][0]
+                
+                if (fkDisco is not None) :
+                    mycursor.execute(f"SELECT valor FROM tbMetrica WHERE fkComponente = {fkDisco};")
+                    metricasDisco = mycursor.fetchall()
+                    
+                    discoGbLimite = metricasDisco[0][0]
+            print("Seja bem-vindo!")        
+            isRunning = True        
+            break       
+                              
+    if isRunning == False:
+        print("Servidor não encontrado!")
+    
 else:
     print("Erro: Usuário não encontrado!")
 
