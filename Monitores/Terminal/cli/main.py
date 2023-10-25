@@ -7,6 +7,7 @@ import keyboard as k
 import mysql.connector
 from dotenv import load_dotenv
 from getpass import getpass
+from decimal import Decimal
 import platform
 
 
@@ -34,6 +35,17 @@ mycursor.execute(f"SELECT * FROM tbColaborador WHERE email = '{user.usuario}' AN
 resultadoColaborador = mycursor.fetchall()
 
 isRunning = False
+
+cpuFreqLimite = 0.0
+cpuTempLimite = 0.0
+ramGbLimite = 0.0
+discoGbLimite = 0.0
+
+fkMetricaCpuFreqLimite = 0
+fkMetricaCpuTempLimite = 0
+fkMetricaRamGbLimite = 0
+fkMetricaDiscoGbLimite = 0
+
 
 if len(resultadoColaborador) > 0 :
     fkEmpresa = resultadoColaborador[0][-2]
@@ -69,26 +81,41 @@ if len(resultadoColaborador) > 0 :
                 print("Buscando métricas")
                 
                 if (fkCpu is not None) :
-                    mycursor.execute(f"SELECT valor, fkUnidadeMedida FROM tbMetrica WHERE fkComponente = {fkCpu};")
+                    mycursor.execute(f"SELECT valor, fkUnidadeMedida, idMetrica FROM tbMetrica WHERE fkComponente = {fkCpu};")
                     metricasCPU = mycursor.fetchall()
                     
                     for resultado in metricasCPU :
                         if (resultado[1] == 1) :
                             cpuTempLimite = resultado[0]
+                            fkMetricaCpuTempLimite = resultado[2]
+                            print(fkMetricaCpuTempLimite)
+                            
+                            cpuTempLimite = Decimal(cpuTempLimite) * Decimal('0.9')
                         else :
                             cpuFreqLimite = resultado[0]
+                            fkMetricaCpuFreqLimite = resultado[2]
+                            print(fkMetricaCpuFreqLimite)
+                            print('e freq')
+                            cpuFreqLimite = cpuFreqLimite*0.9
                             
                 if (fkRam is not None) :
-                    mycursor.execute(f"SELECT valor FROM tbMetrica WHERE fkComponente = {fkRam};")
+                    mycursor.execute(f"SELECT valor, idMetrica FROM tbMetrica WHERE fkComponente = {fkRam};")
                     metricasRam = mycursor.fetchall()
                     
                     ramGbLimite = metricasRam[0][0]
+                    fkMetricaRamGbLimite = metricasRam[0][1]
+                    
+                    ramGbLimite = Decimal(ramGbLimite) * Decimal('0.9')
                 
                 if (fkDisco is not None) :
-                    mycursor.execute(f"SELECT valor FROM tbMetrica WHERE fkComponente = {fkDisco};")
+                    mycursor.execute(f"SELECT valor, idMetrica FROM tbMetrica WHERE fkComponente = {fkDisco};")
                     metricasDisco = mycursor.fetchall()
                     
                     discoGbLimite = metricasDisco[0][0]
+                    fkMetricaDiscoGbLimite = metricasDisco[0][1]
+                                        
+                    discoGbLimite = Decimal(discoGbLimite) * Decimal('0.9')
+                    
             print("Seja bem-vindo!")        
             isRunning = True        
             break       
@@ -102,82 +129,115 @@ else:
 # ================================================================= Funções de inserção no banco 
 def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoCPUFisc,1,1,1)
+    # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    # val = (dadoCPUFisc,1,1,1)
 
-    mycursor.execute(sql, val)
-    DB.commit()
+    # mycursor.execute(sql, val)
+    # DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoCPULogc,1,1,1)
+    # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    # val = (dadoCPULogc,1,1,1)
  
-    mycursor.execute(sql,val)
-    DB.commit()
+    # mycursor.execute(sql,val)
+    # DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoCPUFreq,1,1,1)
-  
-    mycursor.execute(sql,val)
-    DB.commit()
-  
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoCPUPercent,1,1,1)
+    if (dadoCPUFreq > cpuFreqLimite) :
+        passou = 1
+    else :
+        passou = 0
+            
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
+    val = (dadoCPUFreq, passou, fkServidor, fkCpu, fkMetricaCpuFreqLimite)
+    
+    if (fkMetricaCpuFreqLimite != 0) :  
+        try:
+            mycursor.execute(sql,val)
+            DB.commit()
+        except Exception as e:
+            print("Ocorreu um erro:", e)
 
-    mycursor.execute(sql,val)
-    DB.commit() 
+  
+    # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    # val = (dadoCPUPercent,1,1,1)
+
+    # mycursor.execute(sql,val)
+    # DB.commit() 
 
     if(platform.uname().system != 'Windows'):
-        sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-        val = (ps.sensors_temperatures(fahrenheit=False),1,1,1)
+        dadoCPUTemp = ps.sensors_temperatures(fahrenheit=False);
+        if (dadoCPUTemp > cpuTempLimite) :
+            passou = 1
+        else : 
+            passou = 0
+            
+        sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
+        val = (dadoCPUTemp, passou, fkServidor, fkCpu, fkMetricaCpuTempLimite)
+        
+        if (fkMetricaCpuTempLimite != 0) :  
+            try:
+                mycursor.execute(sql,val)
+                DB.commit()
+            except Exception as e:
+                print("Ocorreu um erro:", e)
 
         mycursor.execute(sql,val)
         DB.commit()    
 
 def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
 
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoHDNumParcs,3,1,1)
+    # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    # val = (dadoHDNumParcs,3,1,1)
        
-    mycursor.execute(sql, val)
-    DB.commit()
+    # mycursor.execute(sql, val)
+    # DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoHDTotal,3,1,1)
+    # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    # val = (dadoHDTotal,3,1,1)
  
-    mycursor.execute(sql,val)
-    DB.commit()
+    # mycursor.execute(sql,val)
+    # DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoHDAtual,3,1,1)
+    if (dadoHDAtual > discoGbLimite) :
+        passou = 1
+    else : 
+        passou = 0
+        
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
+    val = (dadoHDAtual, passou, fkServidor, fkDisco, fkMetricaDiscoGbLimite)
   
     mycursor.execute(sql,val)
     DB.commit()
   
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoHDPercent,3,1,1)
+    # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    # val = (dadoHDPercent,3,1,1)
 
-    mycursor.execute(sql,val)
-    DB.commit() 
+    # mycursor.execute(sql,val)
+    # DB.commit() 
 
 def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoRAMTotal,2,1,1)
+    # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    # val = (dadoRAMTotal,2,1,1)
        
-    mycursor.execute(sql, val)
-    DB.commit()
+    # mycursor.execute(sql, val)
+    # DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoRAMAtual,2,1,1)
+    if (dadoRAMAtual > ramGbLimite) :
+        passou = 1
+    else : 
+        passou = 0
+        
+    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
+    val = (dadoRAMAtual, passou, fkServidor, fkRam, fkMetricaRamGbLimite)
  
     mycursor.execute(sql,val)
     DB.commit()
     
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
-    val = (dadoRAMPercent,2,1,1)
+    # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
+    # val = (dadoRAMPercent,2,1,1)
   
-    mycursor.execute(sql,val)
-    DB.commit()
+    # mycursor.execute(sql,val)
+    # DB.commit()
   
 
 # ================================================================= Configurações do programa
