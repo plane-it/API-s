@@ -9,7 +9,7 @@ import platform
 DB = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="0108Oliver",
+    password="12345",
     database="planeit"
 )
 
