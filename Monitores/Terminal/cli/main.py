@@ -8,7 +8,9 @@ import mysql.connector
 from dotenv import load_dotenv
 from getpass import getpass
 from decimal import Decimal
+from datetime import datetime, timedelta
 import platform
+
 
 
 # ================================================================= Carregando variaveis de ambiente
@@ -45,6 +47,11 @@ fkMetricaCpuFreqLimite = 0
 fkMetricaCpuTempLimite = 0
 fkMetricaRamGbLimite = 0
 fkMetricaDiscoGbLimite = 0
+
+ultimo_chamado_CPU_Freq = datetime.now() - timedelta(minutes=10)
+ultimo_chamado_CPU_Temp = datetime.now() - timedelta(minutes=10)
+ultimo_chamado_Ram = datetime.now() - timedelta(minutes=10)
+ultimo_chamado_Disco = datetime.now() - timedelta(minutes=10)
 
 
 if len(resultadoColaborador) > 0 :
@@ -90,13 +97,13 @@ if len(resultadoColaborador) > 0 :
                             fkMetricaCpuTempLimite = resultado[2]
                             print(fkMetricaCpuTempLimite)
                             
-                            cpuTempLimite = Decimal(cpuTempLimite) * Decimal('0.9')
+                            cpuTempLimite = Decimal(cpuTempLimite) * Decimal('0.8')
                         else :
                             cpuFreqLimite = resultado[0]
                             fkMetricaCpuFreqLimite = resultado[2]
                             print(fkMetricaCpuFreqLimite)
                             print('e freq')
-                            cpuFreqLimite = cpuFreqLimite*0.9
+                            cpuFreqLimite = cpuFreqLimite*0.8
                             
                 if (fkRam is not None) :
                     mycursor.execute(f"SELECT valor, idMetrica FROM tbMetrica WHERE fkComponente = {fkRam};")
@@ -105,7 +112,7 @@ if len(resultadoColaborador) > 0 :
                     ramGbLimite = metricasRam[0][0]
                     fkMetricaRamGbLimite = metricasRam[0][1]
                     
-                    ramGbLimite = Decimal(ramGbLimite) * Decimal('0.9')
+                    ramGbLimite = Decimal(ramGbLimite) * Decimal('0.8')
                 
                 if (fkDisco is not None) :
                     mycursor.execute(f"SELECT valor, idMetrica FROM tbMetrica WHERE fkComponente = {fkDisco};")
@@ -114,7 +121,7 @@ if len(resultadoColaborador) > 0 :
                     discoGbLimite = metricasDisco[0][0]
                     fkMetricaDiscoGbLimite = metricasDisco[0][1]
                                         
-                    discoGbLimite = Decimal(discoGbLimite) * Decimal('0.9')
+                    discoGbLimite = Decimal(discoGbLimite) * Decimal('0.8')
                     
             print("Seja bem-vindo!")        
             isRunning = True        
@@ -129,6 +136,9 @@ else:
 # ================================================================= Funções de inserção no banco 
 def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
     
+    global ultimo_chamado_CPU_Temp
+    global ultimo_chamado_CPU_Freq
+    
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoCPUFisc,1,1,1)
 
@@ -141,20 +151,43 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
     # mycursor.execute(sql,val)
     # DB.commit()
     
-    if (dadoCPUFreq > cpuFreqLimite) :
-        passou = 1
-    else :
-        passou = 0
-            
+    passou = int(dadoCPUFreq > cpuFreqLimite)
+
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
     val = (dadoCPUFreq, passou, fkServidor, fkCpu, fkMetricaCpuFreqLimite)
-    
-    if (fkMetricaCpuFreqLimite != 0) :  
+
+    if fkMetricaCpuFreqLimite != 0:
         try:
             mycursor.execute(sql,val)
             DB.commit()
+
+            id_inserido = mycursor.lastrowid
+
+            if passou == 1:
+                if datetime.now() - ultimo_chamado_CPU_Freq >= timedelta(minutes=10):
+                    
+                    prioridade = None
+                    
+                    if dadoCPUFreq < float(cpuFreqLimite) * 1.1:
+                        prioridade = 'Baixo'
+                        tempo = '24 horas'
+                    elif dadoCPUFreq < float(cpuFreqLimite) * 1.2:
+                        prioridade = 'Médio'
+                        tempo = '8 horas'
+                    else:
+                        prioridade = 'Alto'
+                        tempo = '4 horas'
+
+                sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
+                val = (prioridade, tempo, id_inserido)
+                mycursor.execute(sql,val)
+                DB.commit()
+                
+                ultimo_chamado_CPU_Freq = datetime.now()
+
         except Exception as e:
-            print("Ocorreu um erro:", e)
+            print("Ocorreu um erro na cpu Freq:", e)
+
 
   
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
@@ -164,26 +197,47 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
     # DB.commit() 
 
     if(platform.uname().system != 'Windows'):
-        dadoCPUTemp = ps.sensors_temperatures(fahrenheit=False);
-        if (dadoCPUTemp > cpuTempLimite) :
-            passou = 1
-        else : 
-            passou = 0
-            
+        dadoCPUTemp = ps.sensors_temperatures(fahrenheit=False)
+        passou = int(dadoCPUTemp > cpuTempLimite)
+
         sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
         val = (dadoCPUTemp, passou, fkServidor, fkCpu, fkMetricaCpuTempLimite)
-        
-        if (fkMetricaCpuTempLimite != 0) :  
+
+        if fkMetricaCpuTempLimite != 0:
             try:
                 mycursor.execute(sql,val)
                 DB.commit()
-            except Exception as e:
-                print("Ocorreu um erro:", e)
 
-        mycursor.execute(sql,val)
-        DB.commit()    
+                id_inserido = mycursor.lastrowid
+
+                if passou == 1:
+                    if datetime.now() - ultimo_chamado_CPU_Temp >= timedelta(minutes=10):
+
+                        if dadoCPUTemp < float(cpuTempLimite) * 1.1:
+                            prioridade = 'Baixo'
+                            tempo = '24 horas'
+                        elif dadoCPUTemp < float(cpuTempLimite) * 1.2:
+                            prioridade = 'Médio'
+                            tempo = '8 horas'
+                        else:
+                            prioridade = 'Alto'
+                            tempo = '4 horas'
+
+                    sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
+                    val = (prioridade, tempo, id_inserido)
+                    mycursor.execute(sql,val)
+                    DB.commit()
+                    
+                    ultimo_chamado_CPU_Temp = datetime.now()
+
+
+            except Exception as e:
+                print("Ocorreu um erro na cpu temp:", e)
+
 
 def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
+    
+    global ultimo_chamado_Disco
 
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoHDNumParcs,3,1,1)
@@ -197,16 +251,41 @@ def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
     # mycursor.execute(sql,val)
     # DB.commit()
     
-    if (dadoHDAtual > discoGbLimite) :
-        passou = 1
-    else : 
-        passou = 0
-        
+    passou = int(dadoHDAtual > discoGbLimite)
+
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
     val = (dadoHDAtual, passou, fkServidor, fkDisco, fkMetricaDiscoGbLimite)
-  
-    mycursor.execute(sql,val)
-    DB.commit()
+
+    try:
+        mycursor.execute(sql,val)
+        DB.commit()
+
+        id_inserido = mycursor.lastrowid
+
+        if passou == 1:
+            if datetime.now() - ultimo_chamado_Disco >= timedelta(minutes=10):
+
+                if dadoHDAtual < float(discoGbLimite) * 1.1:
+                    prioridade = 'Baixo'
+                    tempo = '24 horas'
+                elif dadoHDAtual < float(discoGbLimite) * 1.2:
+                    prioridade = 'Médio'
+                    tempo = '8 horas'
+                else:
+                    prioridade = 'Alto'
+                    tempo = '4 horas'
+
+                sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
+                val = (prioridade, tempo, id_inserido)
+                mycursor.execute(sql,val)
+                DB.commit()
+                
+                ultimo_chamado_Disco = datetime.now()
+
+
+    except Exception as e:
+        print("Ocorreu um erro no disco:", e)
+
   
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoHDPercent,3,1,1)
@@ -216,22 +295,46 @@ def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
 
 def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
     
+    global ultimo_chamado_Ram
+    
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoRAMTotal,2,1,1)
        
     # mycursor.execute(sql, val)
     # DB.commit()
     
-    if (dadoRAMAtual > ramGbLimite) :
-        passou = 1
-    else : 
-        passou = 0
-        
+    passou = int(dadoRAMAtual > ramGbLimite)
+
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
     val = (dadoRAMAtual, passou, fkServidor, fkRam, fkMetricaRamGbLimite)
- 
-    mycursor.execute(sql,val)
-    DB.commit()
+
+    try:
+        mycursor.execute(sql,val)
+        DB.commit()
+
+        id_inserido = mycursor.lastrowid
+
+        if passou == 1:
+            if datetime.now() - ultimo_chamado_Ram >= timedelta(minutes=10):
+
+                if dadoRAMAtual < float(ramGbLimite) * 1.1:
+                    prioridade = 'Baixo'
+                    tempo = '24 horas'
+                elif dadoRAMAtual < float(ramGbLimite) * 1.2:
+                    prioridade = 'Médio'
+                    tempo = '8 horas'
+                else:
+                    prioridade = 'Alto'
+                    tempo = '4 horas'
+
+            sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
+            val = (prioridade, tempo, id_inserido)
+            mycursor.execute(sql,val)
+            DB.commit()
+
+    except Exception as e:
+        print("Ocorreu um erro na ram:", e)
+
     
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoRAMPercent,2,1,1)
