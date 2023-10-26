@@ -13,6 +13,7 @@ public class Menu {
     com.github.britooo.looca.api.core.Looca looca = new Looca();
     OperacoesBanco operacoesBanco = new OperacoesBanco();
     List <Processo> processoGrupos = looca.getGrupoDeProcessos().getProcessos();
+    Capturas capturas = new Capturas();
 
     public void menuBoasVindas(){
 
@@ -83,149 +84,80 @@ public class Menu {
 
         switch (opcao) {
             case 1:
-                System.out.println(looca.getSistema().getSistemaOperacional());
-                operacoesBanco.sistemaOperacional(looca.getSistema().getSistemaOperacional());
-
+                System.out.println("\n");
+                capturas.sistemaOperacional();
+                divisaoLinha();
                 break;
 
             case 2:
-                System.out.println(looca.getMemoria());
-                operacoesBanco.memoriaRamTotal(looca.getMemoria().getTotal());
-                operacoesBanco.memoriaRamEmUso(looca.getMemoria().getEmUso(),looca.getMemoria().getTotal());
-
+                System.out.println("\n");
+                capturas.memoria();
+                divisaoLinha();
                 break;
 
             case 3:
-
-                System.out.println(looca.getProcessador().getNome());
-                operacoesBanco.nomeProcessador(looca.getProcessador().getNome());
-
-                System.out.println(looca.getProcessador().getFrequencia());
-                operacoesBanco.frequenciaProcessador(looca.getProcessador().getFrequencia());
-
-                System.out.println(looca.getProcessador().getUso());
-                operacoesBanco.usoProcessador(looca.getProcessador().getUso());
-
-                System.out.println(looca.getProcessador().getNumeroCpusFisicas());
-                operacoesBanco.nucleosProcessador(looca.getProcessador().getNumeroCpusFisicas());
-
-                System.out.println(looca.getProcessador().getNumeroCpusLogicas());
-                operacoesBanco.nucleosProcessador(looca.getProcessador().getNumeroCpusLogicas());
-
+                System.out.println("\n");
+                capturas.processador();
+                divisaoLinha();
                 break;
 
             case 4:
-
-                if (!Objects.equals(looca.getSistema().getSistemaOperacional(), "Windows")) {
-                    System.out.println(looca.getTemperatura());
-                    operacoesBanco.temperatura(looca.getTemperatura().getTemperatura());
-
-                } else {
-                    System.out.println("Com o sistema operacional Windows não é possível realizar essa captura");
-                    operacoesBanco.temperatura(0.00);
-
-                }
-
+                System.out.println("\n");
+                capturas.temperatura();
+                divisaoLinha();
                 break;
 
             case 5:
-
-                System.out.println(looca.getGrupoDeDiscos().getTamanhoTotal());
-                System.out.println("volume");
-                for (Volume volume : volumes) {
-                    System.out.println(volume.getNome());
-
-                    System.out.println(volume.getTotal());
-                    operacoesBanco.volumeTotal(volume.getTotal());
-
-                    System.out.println(volume.getDisponivel());
-                    operacoesBanco.volumeEmUso(volume.getDisponivel(),volume.getTotal());
-
-                }
-
+                System.out.println("\n");
+                capturas.disco();
+                divisaoLinha();
                 break;
 
             case 6:
-
-                System.out.println(processoGrupos.size());
-                operacoesBanco.quatidadeProcessos(processoGrupos.size());
-
-                for (Processo processo : processoGrupos){
-
-                    System.out.println(processo.getPid());
-                    operacoesBanco.processoPid(processo.getPid());
-
-                    }
-
+                System.out.println("\n");
+                capturas.processos();
+                divisaoLinha();
                 break;
 
             case 7:
                 //sistema
-                System.out.println(looca.getSistema().getSistemaOperacional());
-                operacoesBanco.sistemaOperacional(looca.getSistema().getSistemaOperacional());
+
+                System.out.println("+" + "-".repeat(30) + "+\n" );
+                capturas.sistemaOperacional();
+                divisaoLinha();
 
                 //memória
-                System.out.println(looca.getMemoria());
-                operacoesBanco.memoriaRamTotal(looca.getMemoria().getTotal());
-                operacoesBanco.memoriaRamEmUso(looca.getMemoria().getEmUso(),looca.getMemoria().getTotal());
+                capturas.memoria();
+                divisaoLinha();
 
                 //processador
-                System.out.println(looca.getProcessador().getNome());
-                operacoesBanco.nomeProcessador(looca.getProcessador().getNome());
-
-                System.out.println(looca.getProcessador().getFrequencia());
-                operacoesBanco.frequenciaProcessador(looca.getProcessador().getFrequencia());
-
-                System.out.println(looca.getProcessador().getUso());
-                operacoesBanco.usoProcessador(looca.getProcessador().getUso());
-
-                System.out.println(looca.getProcessador().getNumeroCpusFisicas());
-                operacoesBanco.nucleosProcessador(looca.getProcessador().getNumeroCpusFisicas());
-
-                System.out.println(looca.getProcessador().getNumeroCpusLogicas());
-                operacoesBanco.nucleosProcessador(looca.getProcessador().getNumeroCpusLogicas());
+                capturas.processador();
 
                 //temperatura
-                if (!Objects.equals(looca.getSistema().getSistemaOperacional(), "Windows")) {
-                    System.out.println(looca.getTemperatura());
-                    operacoesBanco.temperatura(looca.getTemperatura().getTemperatura());
-
-                } else {
-                    System.out.println("Com o sistema operacional Windows não é possível realizar essa captura");
-                    operacoesBanco.temperatura(0.00);
-
-                }
+                capturas.temperatura();
+                System.out.println("\n");
+                divisaoLinha();
 
 
                 //grupo de discos
-                System.out.println(looca.getGrupoDeDiscos().getTamanhoTotal());
-                System.out.println("volume");
-                for (Volume volume : volumes) {
-                    System.out.println(volume.getNome());
+                capturas.disco();
+                System.out.println("\n");
+                divisaoLinha();
 
-                    System.out.println(volume.getTotal());
-                    operacoesBanco.volumeTotal(volume.getTotal());
-
-                    System.out.println(volume.getDisponivel());
-                    operacoesBanco.volumeEmUso(volume.getDisponivel(),volume.getTotal());
-                }
 
                 //processos
-                System.out.println(processoGrupos.size());
-                operacoesBanco.quatidadeProcessos(processoGrupos.size());
-
-                for (Processo processo : processoGrupos){
-
-                    System.out.println(processo.getPid());
-                    operacoesBanco.processoPid(processo.getPid());
-
-                }
-
+                capturas.processos();
+                System.out.println("\n");
+                divisaoLinha();
                 break;
             case 8:
 
                 System.out.println("Opção 9 selecionada: Sair");
                 break;
         }
+    }
+
+    public void divisaoLinha(){
+        System.out.println("-".repeat(45) + "\n");
     }
 }

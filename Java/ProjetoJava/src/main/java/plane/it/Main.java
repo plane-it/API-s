@@ -6,7 +6,7 @@ public class Main {
         Menu menu = new Menu();
         OperacoesBanco operacoesBanco = new OperacoesBanco();
         Usuario usuario = new Usuario();
-
+        
         usuario.AutenticarUsuario(menu,operacoesBanco);
 
         while (true){
