@@ -21,7 +21,7 @@ load_dotenv()
 DB = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="12345",
+    password="lucas-00123969130980362",
     database="planeit"
 )
 
@@ -178,12 +178,12 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
                         prioridade = 'Alto'
                         tempo = '4 horas'
 
-                sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
-                val = (prioridade, tempo, id_inserido)
-                mycursor.execute(sql,val)
-                DB.commit()
-                
-                ultimo_chamado_CPU_Freq = datetime.now()
+                    sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
+                    val = (prioridade, tempo, id_inserido)
+                    mycursor.execute(sql,val)
+                    DB.commit()
+                    
+                    ultimo_chamado_CPU_Freq = datetime.now()
 
         except Exception as e:
             print("Ocorreu um erro na cpu Freq:", e)
@@ -197,7 +197,11 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
     # DB.commit() 
 
     if(platform.uname().system != 'Windows'):
+
         dadoCPUTemp = ps.sensors_temperatures(fahrenheit=False)
+        dadoCPUTemp = list(dadoCPUTemp.values())[0][0].current       
+
+
         passou = int(dadoCPUTemp > cpuTempLimite)
 
         sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
@@ -223,12 +227,12 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
                             prioridade = 'Alto'
                             tempo = '4 horas'
 
-                    sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
-                    val = (prioridade, tempo, id_inserido)
-                    mycursor.execute(sql,val)
-                    DB.commit()
-                    
-                    ultimo_chamado_CPU_Temp = datetime.now()
+                        sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
+                        val = (prioridade, tempo, id_inserido)
+                        mycursor.execute(sql,val)
+                        DB.commit()
+                        
+                        ultimo_chamado_CPU_Temp = datetime.now()
 
 
             except Exception as e:
@@ -327,10 +331,10 @@ def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
                     prioridade = 'Alto'
                     tempo = '4 horas'
 
-            sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
-            val = (prioridade, tempo, id_inserido)
-            mycursor.execute(sql,val)
-            DB.commit()
+                sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
+                val = (prioridade, tempo, id_inserido)
+                mycursor.execute(sql,val)
+                DB.commit()
 
     except Exception as e:
         print("Ocorreu um erro na ram:", e)
