@@ -1,18 +1,20 @@
 package plane.it;
 
+import plane.it.banco.Autenticacoes;
+
 public class Main {
     public static void main(String[] args) {
 
         Menu menu = new Menu();
-        OperacoesBanco operacoesBanco = new OperacoesBanco();
-        Usuario usuario = new Usuario();
-        
-        usuario.AutenticarUsuario(menu,operacoesBanco);
+        Autenticacoes autenticacoes = new Autenticacoes();
+
+        String aeroporto = autenticacoes.autenticarUsuario(menu);
+        int servidor = autenticacoes.autenticarServidor(aeroporto);
 
         while (true){
 
-            menu.menuOpcoesSistema();
-            menu.menuCaptura();
+            menu.menuOpcoesSistema(servidor);
+
 
         }
     }

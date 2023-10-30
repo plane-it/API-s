@@ -3,16 +3,21 @@ package plane.it;
 import com.github.britooo.looca.api.core.Looca;
 import com.github.britooo.looca.api.group.discos.Volume;
 import com.github.britooo.looca.api.group.processos.Processo;
+import plane.it.banco.OperacoesBanco;
 
 import java.util.List;
 import java.util.Objects;
 
 public class Capturas {
-    com.github.britooo.looca.api.core.Looca looca = new Looca();
-    OperacoesBanco operacoesBanco = new OperacoesBanco();
-    List <Processo> processoGrupos = looca.getGrupoDeProcessos().getProcessos();
-    List<Volume> volumes = looca.getGrupoDeDiscos().getVolumes();
+    private Looca looca = new Looca();
+    private OperacoesBanco operacoesBanco;
+    private List <Processo> processoGrupos = looca.getGrupoDeProcessos().getProcessos();
+    private List<Volume> volumes = looca.getGrupoDeDiscos().getVolumes();
 
+
+    public Capturas(int servidor) {
+        this.operacoesBanco =  new OperacoesBanco(servidor);
+    }
 
     public void sistemaOperacional(){
 

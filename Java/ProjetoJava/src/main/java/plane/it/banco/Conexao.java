@@ -1,4 +1,4 @@
-package plane.it;
+package plane.it.banco;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,7 +17,7 @@ public class Conexao {
         conexaoDoBanco = new JdbcTemplate(dataSource);
     }
 
-    public JdbcTemplate getConexaoDoBanco() {
+    public JdbcTemplate getConexaoBanco() {
         return conexaoDoBanco;
     }
 }
