@@ -1,3 +1,9 @@
+import conexao
+
+def autenticacao(email,senha):
+    conexao.mycursor.execute(f"SELECT * FROM tbColaborador WHERE email = '{email}' AND senha = '{senha}'") 
+    return conexao.mycursor.fetchall()
+
 class Usuario:
     def __init__(self, iptUsuario, iptSenha):
         self.usuario = iptUsuario

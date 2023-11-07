@@ -1,4 +1,7 @@
 import usuario
+import conexao
+import servidor
+
 import psutil as ps
 from pick import pick
 import os
@@ -16,25 +19,13 @@ import platform
 # ================================================================= Carregando variaveis de ambiente
 load_dotenv()
 
-# ================================================================= Conexão mysql
-
-DB = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="lucas-00123969130980362",
-    database="planeit"
-)
-
-mycursor = DB.cursor()
-
 # ================================================================= Login do usuário
 user = usuario.Usuario(
     input("Digite o email de usuário: "),
     getpass("Digite a sua senha: ")
 )
 
-mycursor.execute(f"SELECT * FROM tbColaborador WHERE email = '{user.usuario}' AND senha = '{user.senha}'") 
-resultadoColaborador = mycursor.fetchall()
+resultadoColaborador = usuario.autenticacao(user.usuario,user.senha)
 
 isRunning = False
 
@@ -57,8 +48,8 @@ ultimo_chamado_Disco = datetime.now() - timedelta(minutes=10)
 if len(resultadoColaborador) > 0 :
     fkEmpresa = resultadoColaborador[0][-2]
 
-    mycursor.execute(f"SELECT codAutentic, idServ FROM tbServidor JOIN tbAeroporto ON fkAeroporto = idAeroporto JOIN tbEmpresa ON fkEmpresa = idEmpr WHERE idEmpr = {fkEmpresa};")
-    resultadoServidores = mycursor.fetchall()
+    conexao.mycursor.execute(f"SELECT codAutentic, idServ FROM tbServidor JOIN tbAeroporto ON fkAeroporto = idAeroporto JOIN tbEmpresa ON fkEmpresa = idEmpr WHERE idEmpr = {fkEmpresa};")
+    resultadoServidores = conexao.mycursor.fetchall()
     
     codigoServ = input("Digite o código do servidor: ")
     
@@ -69,8 +60,8 @@ if len(resultadoColaborador) > 0 :
             fkServidor = resultado[1]
             
             print("Buscando componentes...")
-            mycursor.execute(f"SELECT idComp, fktipoComponente FROM tbComponente WHERE fkServ = {fkServidor};")
-            resultadoComponentes = mycursor.fetchall()
+            conexao.mycursor.execute(f"SELECT idComp, fktipoComponente FROM tbComponente WHERE fkServ = {fkServidor};")
+            resultadoComponentes = conexao.mycursor.fetchall()
             
             for resultado in resultadoComponentes :
                 fkComponente = resultado[0]
@@ -88,8 +79,8 @@ if len(resultadoColaborador) > 0 :
                 print("Buscando métricas")
                 
                 if (fkCpu is not None) :
-                    mycursor.execute(f"SELECT valor, fkUnidadeMedida, idMetrica FROM tbMetrica WHERE fkComponente = {fkCpu};")
-                    metricasCPU = mycursor.fetchall()
+                    conexao.mycursor.execute(f"SELECT valor, fkUnidadeMedida, idMetrica FROM tbMetrica WHERE fkComponente = {fkCpu};")
+                    metricasCPU = conexao.mycursor.fetchall()
                     
                     for resultado in metricasCPU :
                         if (resultado[1] == 1) :
@@ -106,8 +97,8 @@ if len(resultadoColaborador) > 0 :
                             cpuFreqLimite = cpuFreqLimite*0.8
                             
                 if (fkRam is not None) :
-                    mycursor.execute(f"SELECT valor, idMetrica FROM tbMetrica WHERE fkComponente = {fkRam};")
-                    metricasRam = mycursor.fetchall()
+                    conexao.mycursor.execute(f"SELECT valor, idMetrica FROM tbMetrica WHERE fkComponente = {fkRam};")
+                    metricasRam = conexao.mycursor.fetchall()
                     
                     ramGbLimite = metricasRam[0][0]
                     fkMetricaRamGbLimite = metricasRam[0][1]
@@ -115,8 +106,8 @@ if len(resultadoColaborador) > 0 :
                     ramGbLimite = Decimal(ramGbLimite) * Decimal('0.8')
                 
                 if (fkDisco is not None) :
-                    mycursor.execute(f"SELECT valor, idMetrica FROM tbMetrica WHERE fkComponente = {fkDisco};")
-                    metricasDisco = mycursor.fetchall()
+                    conexao.mycursor.execute(f"SELECT valor, idMetrica FROM tbMetrica WHERE fkComponente = {fkDisco};")
+                    metricasDisco = conexao.mycursor.fetchall()
                     
                     discoGbLimite = metricasDisco[0][0]
                     fkMetricaDiscoGbLimite = metricasDisco[0][1]
@@ -142,13 +133,13 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoCPUFisc,1,1,1)
 
-    # mycursor.execute(sql, val)
+    # conexao.mycursor.execute(sql, val)
     # DB.commit()
     
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoCPULogc,1,1,1)
  
-    # mycursor.execute(sql,val)
+    # conexao.mycursor.execute(sql,val)
     # DB.commit()
     
     passou = int(dadoCPUFreq > cpuFreqLimite)
@@ -158,10 +149,10 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
 
     if fkMetricaCpuFreqLimite != 0:
         try:
-            mycursor.execute(sql,val)
+            conexao.mycursor.execute(sql,val)
             DB.commit()
 
-            id_inserido = mycursor.lastrowid
+            id_inserido = conexao.mycursor.lastrowid
 
             if passou == 1:
                 if datetime.now() - ultimo_chamado_CPU_Freq >= timedelta(minutes=10):
@@ -180,7 +171,7 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
 
                     sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
                     val = (prioridade, tempo, id_inserido)
-                    mycursor.execute(sql,val)
+                    conexao.mycursor.execute(sql,val)
                     DB.commit()
                     
                     ultimo_chamado_CPU_Freq = datetime.now()
@@ -193,7 +184,7 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoCPUPercent,1,1,1)
 
-    # mycursor.execute(sql,val)
+    # conexao.mycursor.execute(sql,val)
     # DB.commit() 
 
     if(platform.uname().system != 'Windows'):
@@ -209,10 +200,10 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
 
         if fkMetricaCpuTempLimite != 0:
             try:
-                mycursor.execute(sql,val)
+                conexao.mycursor.execute(sql,val)
                 DB.commit()
 
-                id_inserido = mycursor.lastrowid
+                id_inserido = conexao.mycursor.lastrowid
 
                 if passou == 1:
                     if datetime.now() - ultimo_chamado_CPU_Temp >= timedelta(minutes=10):
@@ -229,7 +220,7 @@ def inserirBancoCPU(dadoCPUFisc,dadoCPULogc,dadoCPUFreq,dadoCPUPercent):
 
                         sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
                         val = (prioridade, tempo, id_inserido)
-                        mycursor.execute(sql,val)
+                        conexao.mycursor.execute(sql,val)
                         DB.commit()
                         
                         ultimo_chamado_CPU_Temp = datetime.now()
@@ -246,13 +237,13 @@ def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoHDNumParcs,3,1,1)
        
-    # mycursor.execute(sql, val)
+    # conexao.mycursor.execute(sql, val)
     # DB.commit()
     
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoHDTotal,3,1,1)
  
-    # mycursor.execute(sql,val)
+    # conexao.mycursor.execute(sql,val)
     # DB.commit()
     
     passou = int(dadoHDAtual > discoGbLimite)
@@ -261,10 +252,10 @@ def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
     val = (dadoHDAtual, passou, fkServidor, fkDisco, fkMetricaDiscoGbLimite)
 
     try:
-        mycursor.execute(sql,val)
+        conexao.mycursor.execute(sql,val)
         DB.commit()
 
-        id_inserido = mycursor.lastrowid
+        id_inserido = conexao.mycursor.lastrowid
 
         if passou == 1:
             if datetime.now() - ultimo_chamado_Disco >= timedelta(minutes=10):
@@ -281,7 +272,7 @@ def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
 
                 sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
                 val = (prioridade, tempo, id_inserido)
-                mycursor.execute(sql,val)
+                conexao.mycursor.execute(sql,val)
                 DB.commit()
                 
                 ultimo_chamado_Disco = datetime.now()
@@ -294,7 +285,7 @@ def inserirBancoHD(dadoHDNumParcs,dadoHDTotal,dadoHDAtual,dadoHDPercent):
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoHDPercent,3,1,1)
 
-    # mycursor.execute(sql,val)
+    # conexao.mycursor.execute(sql,val)
     # DB.commit() 
 
 def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
@@ -304,7 +295,7 @@ def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoRAMTotal,2,1,1)
        
-    # mycursor.execute(sql, val)
+    # conexao.mycursor.execute(sql, val)
     # DB.commit()
     
     passou = int(dadoRAMAtual > ramGbLimite)
@@ -313,10 +304,10 @@ def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
     val = (dadoRAMAtual, passou, fkServidor, fkRam, fkMetricaRamGbLimite)
 
     try:
-        mycursor.execute(sql,val)
+        conexao.mycursor.execute(sql,val)
         DB.commit()
 
-        id_inserido = mycursor.lastrowid
+        id_inserido = conexao.mycursor.lastrowid
 
         if passou == 1:
             if datetime.now() - ultimo_chamado_Ram >= timedelta(minutes=10):
@@ -333,7 +324,7 @@ def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
 
                 sql = "INSERT INTO tbChamados VALUES (null, %s, %s, 'Aberto', %s)"
                 val = (prioridade, tempo, id_inserido)
-                mycursor.execute(sql,val)
+                conexao.mycursor.execute(sql,val)
                 DB.commit()
 
     except Exception as e:
@@ -343,7 +334,7 @@ def inserirBancoRam(dadoRAMTotal,dadoRAMAtual,dadoRAMPercent):
     # sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s)"
     # val = (dadoRAMPercent,2,1,1)
   
-    # mycursor.execute(sql,val)
+    # conexao.mycursor.execute(sql,val)
     # DB.commit()
   
 
