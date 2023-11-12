@@ -122,9 +122,7 @@ public class OperacoesBanco {
 
     }
 
-    public void processoPid(Integer pid){
-        con.update("INSERT INTO tbProcessos VALUES(NULL,?,?,?)",pid,formatter.format(dataAtual),servidor);
-    }
+
 
     public void quatidadeProcessos(Integer quatidadeProcessos){
         con.update("INSERT INTO tbRegistro VALUES(NULL,?,?,?,?,NULL,5)",quatidadeProcessos,

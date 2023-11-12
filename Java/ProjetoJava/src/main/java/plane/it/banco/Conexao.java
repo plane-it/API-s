@@ -12,7 +12,7 @@ public class Conexao {
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         dataSource.setUrl("jdbc:mysql://localhost/planeit");
         dataSource.setUsername("root");
-        dataSource.setPassword("0108Oliver");
+        dataSource.setPassword("sherlock15!");
 
         conexaoDoBanco = new JdbcTemplate(dataSource);
     }

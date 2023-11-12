@@ -44,11 +44,6 @@ public class Capturas {
         System.out.println("Em uso: "+ looca.getProcessador().getUso() + "%");
         operacoesBanco.usoProcessador(looca.getProcessador().getUso());
 
-        System.out.println("Nucles fisícos" + looca.getProcessador().getNumeroCpusFisicas());
-        operacoesBanco.nucleosProcessador(looca.getProcessador().getNumeroCpusFisicas());
-
-        System.out.println("Nucleos lógicos" + looca.getProcessador().getNumeroCpusLogicas());
-        operacoesBanco.nucleosProcessador(looca.getProcessador().getNumeroCpusLogicas());
 
     }
 
@@ -87,12 +82,7 @@ public class Capturas {
         System.out.println("Quantidade de processos:" + processoGrupos.size());
         operacoesBanco.quatidadeProcessos(processoGrupos.size());
 
-        for (Processo processo : processoGrupos){
 
-            System.out.println("PID do processo:" + processo.getPid());
-            operacoesBanco.processoPid(processo.getPid());
-
-        }
 
     }
 }
