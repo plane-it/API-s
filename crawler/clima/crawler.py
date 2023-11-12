@@ -1,12 +1,11 @@
 import wget;
-import zipfile;
-from datetime import datetime;
+import zipfile as zfile;
+import datetime as dt;
 import csv;
-import mysql.connector;
-from pytz import timezone;
-import time;
+import mysql.connector as mysql;
+import os
 
-tempo = datetime.now().year
+tempo = dt.datetime.now().year
 def findClima(ano):
       url = f"https://portal.inmet.gov.br/uploads/dadoshistoricos/{tempo}.zip"
       i = 1999
@@ -20,76 +19,251 @@ def findClima(ano):
               print("Buscando anos anteriores")
               i+= 1
       arquivoZip = f'{tempo}.zip'
-      with zipfile.ZipFile(arquivoZip,'r') as z:
+      with zfile.ZipFile(arquivoZip,'r') as z:
           print("Descompactando pasta")
           pastaExtraida = f'{tempo}'
           z.extractall(pastaExtraida)
           print("Pasta extraída com sucesso")  
 
-def readClima():
-    with open(f'{tempo}/INMET_SE_SP_A771_SAO PAULO - INTERLAGOS_01-01-{tempo}_A_30-09-{tempo}.CSV','r') as c:
-            leitura = c.read().split("\n")
-            regiao = leitura[0]   
-            localRegiao = regiao[8:10]
-    for i in leitura[10:]:
-        #Extraindo os dados do csv
-            linha = i.split(";")
-            data = linha[0]
-            hora = linha[1]
-            pressao = linha[3].replace(",",".")
-            temp = linha[7].replace(",",".")
-            tempOr = linha[8].replace(",",".")
-            tempmx = linha[9].replace(",",".")
-            tempmn = linha[10].replace(",",".")
-            umrel = linha[15].replace(",",".")
-            arvel = linha[17].replace(",",".")
-            # if data == "2" and hoa == "1200 UTC":
-            #     continue
-            if pressao == "" or umrel == "" or arvel == "" or temp == "" or tempmx == "" or tempmn == "" or arvel == "":
-                continue
-            conversaoData = datetime.strptime(data,"%Y/%m/%d").date()
-        # conversaoHora = datetime.strptime(hora,formatacaoHora).strftime(formatto)
-        #Print de todos os dados extraidos sem conversão    
-            print(f"A data foi: {data}")
-            print(f"O horário foi: {hora}")
-            print(f"A pressão atmosférica: {pressao} mB")
-            print(f"A temperatura do ar seco: {temp} °C")
-            print(f"A temperatura de Orvalho é: {tempOr} °C")
-            print(f"A temperatura máxima é : {tempmx} °C")
-            print(f"A temperatura minima é : {tempmn} °C")
-            print(f"A umidade relativa do ar: {umrel} %")
-            print(f"A velocidade do vento: {arvel} m/s")
+def separateClima():
+    sudeste= []
+    nordeste = []
+    norte = []
+    sul = []
+    centroOeste = []
+    path = f'{tempo}'
+    print("Separando os arquivos por regiões do Brasil")
+    for i in os.listdir(path):
+        arquivos = os.path.join(path,i)
+        if "INMET_SE" in arquivos:
+            sudeste.append(arquivos)
+        elif "INMET_S" in arquivos:
+            sul.append(arquivos)
+        elif "INMET_CO" in arquivos:
+            centroOeste.append(arquivos)
+        elif "INMET_NE" in arquivos:
+            nordeste.append(arquivos)
+        elif "INMET_N" in arquivos:
+            norte.append(arquivos)
 
-        #Inserindo no banco de dados
+    sendDataSudeste(sudeste)
+    sendDataSul(sul)   
+    sendDataCentro(centroOeste)
+    sendDataNordeste(nordeste)
+    sendDataNorte(norte)
 
-            inserirDados = """
-            INSERT INTO tbClima (
-                regiao,dataCompleta,hora,pressaoAtm,temperaturaAr,temperaturaOrv,temperaturaMax,temperaturaMin,umidadeRelativa,
-                velocidadeAr
-            )
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            """
-            valores = (localRegiao,conversaoData,hora,pressao,temp,tempOr,tempmx,tempmn,umrel,arvel)
+def sendDataSudeste(sudeste):
+    print('Tratando os dados de cada arquivo da região Sudeste')
+    for i in sudeste:
+        with open(i,'r') as file:
+            leitor = file.read().split("\n")
+            regiao = leitor[1]
+            localRegiao = regiao[4:6] 
+            estacao = leitor[2]
+            localEstacao = estacao[9:]
+            for idx in leitor[10:len(leitor)-2]:
+                linha = idx.split(";")
+                if linha != ['']:
+                    data = linha[0]
+                    horario = linha[1].replace(",",".") 
+                    pressao = linha[3].replace(",",".")
+                    temp = linha[7].replace(",",".")
+                    tempor = linha[8].replace(",",".")
+                    tempmx = linha[9].replace(",",".")
+                    tempmn = linha[10].replace(",",".") 
+                    umrel = linha[15].replace(",",".") 
+                    arvel = linha[17].replace(",",".")
 
-            cursor = conexao.cursor()
-            cursor.execute(inserirDados,valores)
-            conexao.commit()       
+                    if pressao == '' or temp == '' or tempor == '' or tempmx == '' or tempmn == '' or umrel == '' or arvel == '':
+                        continue
+                        print(localRegiao,localEstacao,data,arvel)
+    
+                    inserirDados = """
+                    INSERT INTO tbSudeste(
+                            localizacao,regiao,dataCompleta,hora,pressaoAtm,temperaturaAr,temperaturaOrv,temperaturaMax,
+                            temperaturaMin,umidadeRelativa,velocidadeAr
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    """
+                    valores = (localEstacao,localRegiao,data,horario,pressao,temp,tempor,tempmx,tempmn,umrel,arvel)
+                    cursor = conexao.cursor()
+                    cursor.execute(inserirDados,valores)
+                    conexao.commit() 
+                    
+    print('Dados enviados para a tabela tbSudeste')   
+
+def sendDataSul(sul):
+    for i in sul:
+        with open(i,'r') as file:
+            leitor = file.read().split("\n")
+            regiao = leitor[1]
+            localRegiao = regiao[4:6] 
+            estacao = leitor[2]
+            localEstacao = estacao[9:]
+            for idx in leitor[10:len(leitor)-2]:
+                linha = idx.split(";")
+                if linha != ['']:
+                    data = linha[0]
+                    horario = linha[1].replace(",",".") 
+                    pressao = linha[3].replace(",",".")
+                    temp = linha[7].replace(",",".")
+                    tempor = linha[8].replace(",",".")
+                    tempmx = linha[9].replace(",",".")
+                    tempmn = linha[10].replace(",",".") 
+                    umrel = linha[15].replace(",",".") 
+                    arvel = linha[17].replace(",",".")
+
+                    if pressao == '' or temp == '' or tempor == '' or tempmx == '' or tempmn == '' or umrel == '' or arvel == '':
+                        continue
+                        print(localRegiao,localEstacao,data,arvel)
+    
+                    inserirDados = """
+                    INSERT INTO tbSul(
+                            localizacao,regiao,dataCompleta,hora,pressaoAtm,temperaturaAr,temperaturaOrv,temperaturaMax,
+                            temperaturaMin,umidadeRelativa,velocidadeAr
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    """
+                    valores = (localEstacao,localRegiao,data,horario,pressao,temp,tempor,tempmx,tempmn,umrel,arvel)
+                    cursor = conexao.cursor()
+                    cursor.execute(inserirDados,valores)
+                    conexao.commit() 
+                    
+    print('Dados enviados para a tabela tbSul')
+
+def sendDataCentro(centroOeste):
+    for i in centroOeste:
+        with open(i,'r') as file:
+            leitor = file.read().split("\n")
+            regiao = leitor[1]
+            localRegiao = regiao[4:6] 
+            estacao = leitor[2]
+            localEstacao = estacao[9:]
+            for idx in leitor[10:len(leitor)-2]:
+                linha = idx.split(";")
+                if linha != ['']:
+                    data = linha[0]
+                    horario = linha[1].replace(",",".") 
+                    pressao = linha[3].replace(",",".")
+                    temp = linha[7].replace(",",".")
+                    tempor = linha[8].replace(",",".")
+                    tempmx = linha[9].replace(",",".")
+                    tempmn = linha[10].replace(",",".") 
+                    umrel = linha[15].replace(",",".") 
+                    arvel = linha[17].replace(",",".")
+
+                    if pressao == '' or temp == '' or tempor == '' or tempmx == '' or tempmn == '' or umrel == '' or arvel == '':
+                        continue
+                        print(localRegiao,localEstacao,data,arvel)
+    
+                    inserirDados = """
+                    INSERT INTO tbCentroOeste(
+                            localizacao,regiao,dataCompleta,hora,pressaoAtm,temperaturaAr,temperaturaOrv,temperaturaMax,
+                            temperaturaMin,umidadeRelativa,velocidadeAr
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    """
+                    valores = (localEstacao,localRegiao,data,horario,pressao,temp,tempor,tempmx,tempmn,umrel,arvel)
+                    cursor = conexao.cursor()
+                    cursor.execute(inserirDados,valores)
+                    conexao.commit() 
+                    
+    print('Dados enviados para a tabela tbCentroOeste') 
+
+def sendDataNordeste(nordeste):
+    for i in nordeste:
+        with open(i,'r') as file:
+            leitor = file.read().split("\n")
+            regiao = leitor[1]
+            localRegiao = regiao[4:6] 
+            estacao = leitor[2]
+            localEstacao = estacao[9:]
+            for idx in leitor[10:len(leitor)-2]:
+                linha = idx.split(";")
+                if linha != ['']:
+                    data = linha[0]
+                    horario = linha[1].replace(",",".") 
+                    pressao = linha[3].replace(",",".")
+                    temp = linha[7].replace(",",".")
+                    tempor = linha[8].replace(",",".")
+                    tempmx = linha[9].replace(",",".")
+                    tempmn = linha[10].replace(",",".") 
+                    umrel = linha[15].replace(",",".") 
+                    arvel = linha[17].replace(",",".")
+
+                    if pressao == '' or temp == '' or tempor == '' or tempmx == '' or tempmn == '' or umrel == '' or arvel == '':
+                        continue
+                        print(localRegiao,localEstacao,data,arvel)
+    
+                    inserirDados = """
+                    INSERT INTO tbNordeste(
+                            localizacao,regiao,dataCompleta,hora,pressaoAtm,temperaturaAr,temperaturaOrv,temperaturaMax,
+                            temperaturaMin,umidadeRelativa,velocidadeAr
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    """
+                    valores = (localEstacao,localRegiao,data,horario,pressao,temp,tempor,tempmx,tempmn,umrel,arvel)
+                    cursor = conexao.cursor()
+                    cursor.execute(inserirDados,valores)
+                    conexao.commit() 
+                    
+    print('Dados enviados para a tabela tbNordeste') 
+
+def sendDataNorte(norte):
+
+    for i in norte:
+        with open(i,'r') as file:
+            leitor = file.read().split("\n")
+            regiao = leitor[1]
+            localRegiao = regiao[4:6] 
+            estacao = leitor[2]
+            localEstacao = estacao[9:]
+            for idx in leitor[10:len(leitor)-2]:
+                linha = idx.split(";")
+                if linha != ['']:
+                    data = linha[0]
+                    horario = linha[1].replace(",",".") 
+                    pressao = linha[3].replace(",",".")
+                    temp = linha[7].replace(",",".")
+                    tempor = linha[8].replace(",",".")
+                    tempmx = linha[9].replace(",",".")
+                    tempmn = linha[10].replace(",",".") 
+                    umrel = linha[15].replace(",",".") 
+                    arvel = linha[17].replace(",",".")
+
+                    if pressao == '' or temp == '' or tempor == '' or tempmx == '' or tempmn == '' or umrel == '' or arvel == '':
+                        continue
+                        print(localRegiao,localEstacao,data,arvel)
+    
+                    inserirDados = """
+                    INSERT INTO tbNorte(
+                            localizacao,regiao,dataCompleta,hora,pressaoAtm,temperaturaAr,temperaturaOrv,temperaturaMax,
+                            temperaturaMin,umidadeRelativa,velocidadeAr
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    """
+                    valores = (localEstacao,localRegiao,data,horario,pressao,temp,tempor,tempmx,tempmn,umrel,arvel)
+                    cursor = conexao.cursor()
+                    cursor.execute(inserirDados,valores)
+                    conexao.commit() 
+                    
+    print('Dados enviados para a tabela tbNorte')       
+
 try:
-    conexao = mysql.connector.connect(
+    conexao = mysql.connect(
         host = 'localhost',
         user = 'root',
-        password = 'clubpenguim',
+        password = '',
         database = 'climaDados',
         port = '3306'
     )
     if conexao.is_connected():
         print('Conxeão estabelecida!')
         findClima(tempo)
-        readClima()
+        separateClima()
 except Exception as error:
     print(f"Ocorreu um {error}")
 finally:
-    print("Dados enviados para o banco")
     conexao.close()
 
 
