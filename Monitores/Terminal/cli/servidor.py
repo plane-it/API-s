@@ -7,3 +7,7 @@ def autenticar(empresa, codigoAutenticacao):
 def buscarComponetes(fkServidor):
     conexao.mycursor.execute(f"SELECT idComp, fktipoComponente FROM tbComponente WHERE fkServ = {fkServidor};")
     return conexao.mycursor.fetchall()
+
+def metricas(id):
+    conexao.mycursor.execute(f"SELECT valor, fkUnidadeMedida, idMetrica FROM tbMetrica WHERE fkComponente = {id};")
+    return conexao.mycursor.fetchall()
