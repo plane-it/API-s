@@ -20,3 +20,4 @@ class Usuario:
         self.RAMTot = True
         self.RAMAtual = True
         self.RAMPercent = True
+
