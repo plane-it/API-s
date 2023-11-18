@@ -1,5 +1,19 @@
 import requests
 import bs4
+import csv as CSV
+import mysql.connector as mysql
+
+try:
+    pool = mysql.connect(
+        host = 'localhost',
+        user = 'root',
+        password = 'sherlock15!',
+        database = 'planeit'
+    ) 
+    if pool.is_connected():
+        print('Conxeão estabelecida!')
+except Exception as error:
+        print(f"Ocorreu um {error}")
 
 url = "https://www.datascomemorativas.me/2023/feriados"
 
@@ -11,7 +25,6 @@ holidays_list = bs4.BeautifulSoup(response.text, "html.parser").find_all("ul", c
 
 vectorMeses = []
 vectorDias  = []
-vectorSemanas  = []
 vectorTitulos  = []
 vectorTotais = []
 diaMes = []
@@ -37,10 +50,6 @@ def getDias(conjuntoDias):
     for dia in conjuntoDias:
         vectorDias.append(dia.text)
 
-def getSemanas(conjuntoSemanas):
-    for semana in conjuntoSemanas:
-        vectorSemanas.append(semana.text)
-
 def getTitulos(conjuntoTitulos):
     for titulo in conjuntoTitulos:
         vectorTitulos.append(titulo.text)
@@ -49,12 +58,10 @@ def getBase():
     
     for date in  holidays_list:
         diaMes = date.find_all("span", class_ = "holiday-day")
-        semanaMes = date.find_all("span", class_ = "holiday-dayoftheweek")
         conjuntoQuantidade = date.find_all("li", class_ = "holiday")
         tituloMes = date.find_all("a")
         quantidadeFeriadosMes(conjuntoQuantidade)
         getDias(diaMes)
-        getSemanas(semanaMes)
         getTitulos(tituloMes)
     getMeses()
 
@@ -62,6 +69,15 @@ def getBase():
     for id,i in enumerate(quantidadeMes):
         for _ in range(i):
             print(vectorMeses[id],vectorTitulos[index], vectorDias[index])
+    
+            inserirDados = """
+                            INSERT INTO tbFeriados(
+                                    dia,mes,titulo) VALUES (%s,%s,%s)
+                            """
+            valores = (vectorDias[index],vectorMeses[id],vectorTitulos[index])
+            cursor = pool.cursor()
+            cursor.execute(inserirDados,valores)
+            pool.commit() 
             index += 1
         
 
