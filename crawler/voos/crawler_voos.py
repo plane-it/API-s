@@ -82,7 +82,7 @@ with open('flyesMonth{yearData}_{monthData:0>2}.csv'.format(yearData=yearData, m
 
         cursor = pool.cursor()
         cursor.execute("""
-        INSERT INTO teste
+        INSERT INTO voos
             (siglaEmpresaAerea, nVoo, siglaAeroportoOrigem, horaPartidaPrevista, horaPartidaReal, siglaAeroportoDestino, horaChegadaPrevista, horaChegadaReal, situacao)
         VALUES {col}""".format(col = tuple(newColumn)))
         pool.commit()
