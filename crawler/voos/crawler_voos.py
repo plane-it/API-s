@@ -6,8 +6,8 @@ import mysql.connector as mysql
 
 pool = mysql.connect(
     host = 'localhost',
-    user = 'aluno',
-    password = 'sptech',
+    user = 'root',
+    password = 'sherlock15!',
     database = 'teste'
 )
 
