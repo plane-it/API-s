@@ -1,4 +1,6 @@
 import conexao
+from decimal import Decimal
+
 
 def inserirFrequencia(frequenciaAtual,frequenciaLimite,idCpu,idServidor,fkMetrica,tempoChamado):
     aletar = frequenciaAtual > frequenciaLimite
@@ -14,14 +16,15 @@ def inserirFrequencia(frequenciaAtual,frequenciaLimite,idCpu,idServidor,fkMetric
         
 
 def inserirTemperatura(temperaturaAtual,temperaturaLimite,idCpu,idServidor,fkMetrica,tempoChamado):
-    aletar = temperaturaAtual > temperaturaLimite
+    temperaturaAtual = Decimal(temperaturaAtual['coretemp'][0].current)    
+    alerta = temperaturaAtual > temperaturaLimite
 
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
-    val = (temperaturaAtual,aletar,idServidor,idCpu,fkMetrica)
+    val = (temperaturaAtual, alerta, idServidor, idCpu, fkMetrica)
 
     envioBanco(sql,val)
 
-    if(aletar and tempoChamado == 10):
+    if(alerta and tempoChamado == 10):
         idRegistro = conexao.mycursor.lastrowid
         registrarChamado(idRegistro,temperaturaAtual,temperaturaLimite)
 
