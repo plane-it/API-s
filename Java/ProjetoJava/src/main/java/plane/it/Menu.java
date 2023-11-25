@@ -1,5 +1,6 @@
 package plane.it;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class Menu {
@@ -23,6 +24,10 @@ public class Menu {
             int opcaoEscolhida = leitor.nextInt();
 
             if (opcaoEscolhida == 1) {
+                capturas = new Capturas(servidor);
+                System.out.println("Buscando especificações da máquina...\n");
+                capturas.specs(servidor);
+
                 System.out.println("Opção 1 selecionada: Captura de dados da máquina\n");
                 menuCaptura();
 
