@@ -52,11 +52,11 @@ def inseritPorcentagemCpu(porcentagemAtual,porcentagemLimite,idCpu,idServidor,fk
         idRegistro = conexao.mycursor.lastrowid
         registrarChamado(idRegistro,porcentagemAtual,porcentagemLimite)
 
-def inserirHdAtual(usoAtual,usoLimite,idCpu,idServidor,fkMetrica,tempoChamado):
+def inserirHdAtual(usoAtual,usoLimite,idDisco,idServidor,fkMetrica,tempoChamado):
     aletar = usoAtual > usoLimite
 
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
-    val = (usoAtual,aletar,idServidor,idCpu,fkMetrica)
+    val = (usoAtual,aletar,idServidor,idDisco,fkMetrica)
 
     envioBanco(sql,val)
 
@@ -65,11 +65,11 @@ def inserirHdAtual(usoAtual,usoLimite,idCpu,idServidor,fkMetrica,tempoChamado):
         registrarChamado(idRegistro,usoAtual,usoLimite)
 
 
-def inserirRamAtual(usoAtual,usoLimite,idCpu,idServidor,fkMetrica,tempoChamado):
+def inserirRamAtual(usoAtual,usoLimite,idRam,idServidor,fkMetrica,tempoChamado):
     aletar = usoAtual > usoLimite
 
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
-    val = (usoAtual,aletar,idServidor,idCpu,fkMetrica)
+    val = (usoAtual,aletar,idServidor,idRam,fkMetrica)
 
     envioBanco(sql,val)
 
