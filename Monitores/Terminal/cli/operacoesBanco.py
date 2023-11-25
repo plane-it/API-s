@@ -92,6 +92,11 @@ def registrarChamado(idRegistro,valorAtual,valorLimite):
 
     envioBanco(sql,[(idRegistro)])
 
+def registrarSpec(valor, idComponente, idUnidadeMedida) :
+    sql = "INSERT INTO tbSpecs VALUES (NULL, %s, %s, %s)"
+    val = [valor, idComponente, idUnidadeMedida]
+
+    envioBanco(sql,val)
 
 def envioBanco(sql,val):
     conexao.mycursor.execute(sql,val)

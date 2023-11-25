@@ -83,13 +83,45 @@ def buscarComponentesServidor(fkServidor):
 
     if (idCpu is not None or idRam is not None or idDisco is not None) :
         print(cores.azul + "Componentes encontrados!" + cores.fechamento)
-        buscarMetricas()
+        buscarSpecs()
 
     else:
         print(cores.vermelho + "Houve um erro na procura de componentes, tentaremos novamente"  + cores.fechamento)
         buscarComponentesServidor(fkServidor)
 
-# ================================================================= Buscar Metrica
+# ================================================================= Buscar Specs
+def buscarSpecs() :
+    print(cores.azul + "Verificando existência de especificações" + cores.fechamento)
+
+    if (servidor.verifExistenciaSpecs(idCpu)) :
+        print(cores.verde + "Especificações de CPU já cadastradas!" + cores.fechamento)
+    else :
+        print(cores.azul + "Especificações de CPU ainda não foram cadastradas, iniciando busca..." + cores.fechamento)
+        coletarDadosCpu()
+        operacoesBanco.registrarSpec(dadoCpuFreqTotal, idCpu, 4)
+
+
+    if (servidor.verifExistenciaSpecs(idRam)) :
+        print(cores.verde + "Especificações de RAM já cadastradas!"+ cores.fechamento)
+    else :
+        print(cores.azul + "Especificações de RAM ainda não foram cadastradas, iniciando busca..." + cores.fechamento)
+        coletarDadosRam()
+        operacoesBanco.registrarSpec(dadoRamTotal, idRam, 3)
+
+
+    if (servidor.verifExistenciaSpecs(idDisco)) :
+        print(cores.verde + "Especificações de Disco já cadastradas!"+ cores.fechamento)
+    else :
+        print(cores.azul + "Especificações de Disco ainda não foram cadastradas, iniciando busca..." + cores.fechamento)
+        coletarDadosDisco()
+        operacoesBanco.registrarSpec(dadoHdTotal, idDisco, 3)
+
+    print(cores.verde + "Especificações encontradas com sucesso!" + cores.fechamento)
+    buscarMetricas()
+
+
+
+
 def buscarMetricas():
 
     print(cores.azul + "buscando metricas!" + cores.fechamento)
@@ -371,7 +403,9 @@ def coletarDadosCpu():
     
     global dadoCpuPercent
     dadoCpuPercent = round(ps.cpu_percent(), 2) if user.CPUPercent else None
-    
+
+    global dadoCpuFreqTotal
+    dadoCpuFreqTotal = round(ps.cpu_freq().max, 2)
     
     if(platform.system() == 'Linux'):
         global dadoCpuTemperatura
