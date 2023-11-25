@@ -11,3 +11,13 @@ def buscarComponetes(fkServidor):
 def metricas(id):
     conexao.mycursor.execute(f"SELECT valor, fkUnidadeMedida, idMetrica FROM tbMetrica WHERE fkComponente = {id};")
     return conexao.mycursor.fetchall()
+
+def verifExistenciaSpecs(idComponente):
+    conexao.mycursor.execute(f"SELECT * FROM tbSpecs WHERE fkComponente = {idComponente};")
+    resultado = conexao.mycursor.fetchall()
+    print(f"idComponente: {idComponente}, resultado: {resultado}")  # Debugging line
+    if resultado:
+        return True
+    else:
+        return False
+

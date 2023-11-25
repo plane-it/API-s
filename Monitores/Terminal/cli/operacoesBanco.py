@@ -1,4 +1,6 @@
 import conexao
+from decimal import Decimal
+
 
 def inserirFrequencia(frequenciaAtual,frequenciaLimite,idCpu,idServidor,fkMetrica,tempoChamado):
     aletar = frequenciaAtual > frequenciaLimite
@@ -14,14 +16,15 @@ def inserirFrequencia(frequenciaAtual,frequenciaLimite,idCpu,idServidor,fkMetric
         
 
 def inserirTemperatura(temperaturaAtual,temperaturaLimite,idCpu,idServidor,fkMetrica,tempoChamado):
-    aletar = temperaturaAtual > temperaturaLimite
+    temperaturaAtual = Decimal(temperaturaAtual['coretemp'][0].current)    
+    alerta = temperaturaAtual > temperaturaLimite
 
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
-    val = (temperaturaAtual,aletar,idServidor,idCpu,fkMetrica)
+    val = (temperaturaAtual, alerta, idServidor, idCpu, fkMetrica)
 
     envioBanco(sql,val)
 
-    if(aletar and tempoChamado == 10):
+    if(alerta and tempoChamado == 10):
         idRegistro = conexao.mycursor.lastrowid
         registrarChamado(idRegistro,temperaturaAtual,temperaturaLimite)
 
@@ -49,11 +52,11 @@ def inseritPorcentagemCpu(porcentagemAtual,porcentagemLimite,idCpu,idServidor,fk
         idRegistro = conexao.mycursor.lastrowid
         registrarChamado(idRegistro,porcentagemAtual,porcentagemLimite)
 
-def inserirHdAtual(usoAtual,usoLimite,idCpu,idServidor,fkMetrica,tempoChamado):
+def inserirHdAtual(usoAtual,usoLimite,idDisco,idServidor,fkMetrica,tempoChamado):
     aletar = usoAtual > usoLimite
 
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
-    val = (usoAtual,aletar,idServidor,idCpu,fkMetrica)
+    val = (usoAtual,aletar,idServidor,idDisco,fkMetrica)
 
     envioBanco(sql,val)
 
@@ -62,11 +65,11 @@ def inserirHdAtual(usoAtual,usoLimite,idCpu,idServidor,fkMetrica,tempoChamado):
         registrarChamado(idRegistro,usoAtual,usoLimite)
 
 
-def inserirRamAtual(usoAtual,usoLimite,idCpu,idServidor,fkMetrica,tempoChamado):
+def inserirRamAtual(usoAtual,usoLimite,idRam,idServidor,fkMetrica,tempoChamado):
     aletar = usoAtual > usoLimite
 
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
-    val = (usoAtual,aletar,idServidor,idCpu,fkMetrica)
+    val = (usoAtual,aletar,idServidor,idRam,fkMetrica)
 
     envioBanco(sql,val)
 
@@ -89,6 +92,11 @@ def registrarChamado(idRegistro,valorAtual,valorLimite):
 
     envioBanco(sql,[(idRegistro)])
 
+def registrarSpec(valor, idComponente, idUnidadeMedida) :
+    sql = "INSERT INTO tbSpecs VALUES (NULL, %s, %s, %s)"
+    val = [valor, idComponente, idUnidadeMedida]
+
+    envioBanco(sql,val)
 
 def envioBanco(sql,val):
     conexao.mycursor.execute(sql,val)
