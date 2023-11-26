@@ -230,11 +230,21 @@ def exibirDados():
     global tempoChamado 
 
     # CPU ///
+    try:
+        limiteFrequenciaCpu
+    except NameError:
+        limiteFrequenciaCpu = None
+
     if limiteFrequenciaCpu is not None and fkMetricaLimiteFrequenciaCpu is not None:
-        operacoesBanco.inserirFrequencia(dadoCpuFreq,limiteFrequenciaCpu,idCpu,idServidor,fkMetricaLimiteFrequenciaCpu,tempoChamado)
+        operacoesBanco.inserirFrequencia(dadoCpuFreq,limiteFrequenciaCpu,idCpu,idServidor,fkMetricaLimiteFrequenciaCpu,tempoChamado)    
 
     if platform.system() == 'Linux' and limiteTemperaturaCpu is not None and fkMetricaLimiteTemperaturaCpu is not None:
         operacoesBanco.inserirTemperatura(dadoCpuTemperatura,limiteTemperaturaCpu,idCpu,idServidor,fkMetricaLimiteTemperaturaCpu,tempoChamado)
+
+    try:
+        limiteUsoCpu
+    except NameError:
+        limiteUsoCpu = None
 
     if limiteUsoCpu is not None and fkMetricaLimiteUsoCpu is not None:
         operacoesBanco.inseritPorcentagemCpu(dadoCpuPercent,limiteUsoCpu,idCpu,idServidor,fkMetricaLimiteUsoCpu,tempoChamado)
