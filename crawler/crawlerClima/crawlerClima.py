@@ -25,6 +25,7 @@ holidays_list = bs4.BeautifulSoup(response.text, "html.parser").find_all("ul", c
 
 vectorMeses = []
 vectorDias  = []
+vectorDiasSemana = []
 vectorTitulos  = []
 vectorTotais = []
 diaMes = []
@@ -49,6 +50,11 @@ def quantidadeFeriadosMes(conjuntoQuantidade):
 def getDias(conjuntoDias):
     for dia in conjuntoDias:
         vectorDias.append(dia.text)
+    
+
+def getDiasSemana(conjuntoSemana):
+    for semana in conjuntoSemana:
+        vectorDiasSemana.append(semana.text)
 
 def getTitulos(conjuntoTitulos):
     for titulo in conjuntoTitulos:
@@ -58,23 +64,25 @@ def getBase():
     
     for date in  holidays_list:
         diaMes = date.find_all("span", class_ = "holiday-day")
+        diaSemana = date.find_all("span", class_ = "holiday-dayoftheweek")
         conjuntoQuantidade = date.find_all("li", class_ = "holiday")
         tituloMes = date.find_all("a")
         quantidadeFeriadosMes(conjuntoQuantidade)
         getDias(diaMes)
+        getDiasSemana(diaSemana)
         getTitulos(tituloMes)
     getMeses()
 
     index = 0 
     for id,i in enumerate(quantidadeMes):
         for _ in range(i):
-            print(vectorMeses[id],vectorTitulos[index], vectorDias[index])
+            print(vectorMeses[id],vectorTitulos[index], vectorDias[index], vectorDiasSemana[index])
     
             inserirDados = """
                             INSERT INTO tbFeriados(
-                                    dia,mes,titulo) VALUES (%s,%s,%s)
+                                    dia,diaSemana,mes,titulo) VALUES (%s,%s,%s,%s)
                             """
-            valores = (vectorDias[index],vectorMeses[id],vectorTitulos[index])
+            valores = (vectorDias[index],vectorDiasSemana[index], vectorMeses[id],vectorTitulos[index])
             cursor = pool.cursor()
             cursor.execute(inserirDados,valores)
             pool.commit() 
