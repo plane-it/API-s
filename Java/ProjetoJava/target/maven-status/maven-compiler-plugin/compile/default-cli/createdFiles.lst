@@ -1,0 +1,10 @@
+plane\it\Main.class
+plane\it\Menu.class
+plane\it\Usuario.class
+plane\it\banco\OperacoesBanco.class
+plane\it\banco\Conexao.class
+plane\it\Capturas.class
+plane\it\Looca.class
+plane\it\banco\Autenticacoes.class
+plane\it\Servidores.class
+plane\it\banco\tabelas\Componente.class
