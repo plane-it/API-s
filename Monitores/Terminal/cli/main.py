@@ -143,25 +143,21 @@ def buscarMetricas():
 def criacaoVariaveisMetricaCPU(metricas):
 
     for resultado in metricas:
-        medida = resultado[1]
-        valor = resultado[0]
-        fk = resultado[2]
+        print(metricas)
+        valor, medida, fk = resultado
+        print(medida)
 
-        if medida == 1:  # Temperatura em graus Celsius
+        if medida == 1:
             global limiteTemperaturaCpu, fkMetricaLimiteTemperaturaCpu
-            limiteTemperaturaCpu = valor
-            fkMetricaLimiteTemperaturaCpu = fk
+            limiteTemperaturaCpu, fkMetricaLimiteTemperaturaCpu = valor, fk
 
-        elif medida == 2:  # Uso da CPU em porcentagem
+        elif medida == 2:
             global limiteUsoCpu, fkMetricaLimiteUsoCpu
-            limiteUsoCpu = valor
-            fkMetricaLimiteUsoCpu = fk
+            limiteUsoCpu, fkMetricaLimiteUsoCpu = valor, fk
 
-        elif medida == 4:  # Frequência da CPU em MHz
+        elif medida == 4:
             global limiteFrequenciaCpu, fkMetricaLimiteFrequenciaCpu
-            limiteFrequenciaCpu = valor
-            fkMetricaLimiteFrequenciaCpu = fk
-
+            limiteFrequenciaCpu, fkMetricaLimiteFrequenciaCpu = valor, fk
 
 def criacaoVariaveisMetricaRam(metricas):
     global limiteGbRam
@@ -230,10 +226,7 @@ def exibirDados():
     global tempoChamado 
 
     # CPU ///
-    try:
-        limiteFrequenciaCpu
-    except NameError:
-        limiteFrequenciaCpu = None
+
 
     if limiteFrequenciaCpu is not None and fkMetricaLimiteFrequenciaCpu is not None:
         operacoesBanco.inserirFrequencia(dadoCpuFreq,limiteFrequenciaCpu,idCpu,idServidor,fkMetricaLimiteFrequenciaCpu,tempoChamado)    

@@ -22,7 +22,7 @@ def montarMensagem(idComponente, tipoComponente, servidor, metricaLimite, unidad
     return mensagem
 
 def enviarMensagem(mensagem):
-    chatAlert = "https://hooks.slack.com/services/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"
+    chatAlert = "https://hooks.slack.com/services/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"
     postMsg = requests.post(chatAlert, data=json.dumps(mensagem))
 
 
