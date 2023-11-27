@@ -1,5 +1,5 @@
 import mysql.connector
-import pyodbc
+import pymssql
 
 # # MYSQL LOCAL
 # DB = mysql.connector.connect(
@@ -12,13 +12,12 @@ import pyodbc
 # mycursor = DB.cursor()
 # #
 
-server = '44.218.73.236'
+server = 'ec2-44-218-73-236.compute-1.amazonaws.com'
 database = 'planeit'
 username = 'planeit'
 password = 'planeit123'
-port = '1433'  # Porta padrão do SQL Server
+port = '1433'  # Default SQL Server port
 
-conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
+DB = pymssql.connect(server=server, user=username, password=password, database=database, port=port)
 
-cursor = conn.cursor()
-
+mycursor = DB.cursor()

@@ -103,9 +103,9 @@ def registrarChamado(idRegistro, valorAtual, valorLimite, idComponente, idServid
     jira.criarChamadoJira(mensagem)
     envioBanco(sql,[(idRegistro)])
 
-def registrarSpec(valor, idComponente, idUnidadeMedida) :
-    sql = "INSERT INTO tbSpecs VALUES (NULL, %s, %s, %s)"
-    val = [valor, idComponente, idUnidadeMedida]
+def registrarSpec(valor, idComponente, idUnidadeMedida):
+    sql = "INSERT INTO tbSpecs (valor, fkComponente, fkUnidadeMedida) VALUES (%s, %s, %s)"
+    val = (valor, idComponente, idUnidadeMedida)  # Convert list to tuple
 
     envioBanco(sql,val)
 
