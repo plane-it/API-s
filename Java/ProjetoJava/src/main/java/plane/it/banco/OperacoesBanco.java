@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import plane.it.Servidores;
 import plane.it.Usuario;
+import plane.it.banco.tabelas.Componente;
 
 
 import java.time.LocalDateTime;
@@ -133,4 +134,41 @@ public class OperacoesBanco {
        Double converterMemoria = (double) medida / 1000000000;
        return (double) Math.floor(converterMemoria);
    }
+
+    public List<Componente> buscarComponentes(Integer idServidor){
+        return con.query("SELECT * FROM tbComponente WHERE fkServ = ?;",
+                new BeanPropertyRowMapper<>(Componente.class),
+                idServidor);
+    }
+
+    public boolean verificarExistencia(int fkComponente, int fkUnidadeMedida) {
+        String sql = "SELECT COUNT(*) FROM tbSpecs WHERE fkComponente = ? AND fkUnidadeMedida = ?";
+
+        int count = con.queryForObject(sql, Integer.class, fkComponente, fkUnidadeMedida);
+
+        // Se count for maior que zero, significa que a combinação já existe na tabela
+        return count > 0;
+    }
+
+    public boolean cadastrarSpcecs(Double valor, String fkComp, Integer fkMedida) {
+        if (fkComp == null) {
+            System.out.println("fkComp is null");
+            return false;
+        }
+
+        try {
+            if (verificarExistencia(Integer.parseInt(fkComp), fkMedida)) {
+                return false;
+            }
+
+            String sql = "INSERT INTO tbSpecs (valor, fkComponente, fkUnidadeMedida) VALUES (?, ?, ?)";
+            con.update(sql, valor, fkComp, fkMedida);
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("An unexpected error occurred");
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

@@ -6,9 +6,9 @@ import mysql.connector as mysql
 
 pool = mysql.connect(
     host = 'localhost',
-    user = 'aluno',
-    password = 'sptech',
-    database = 'teste'
+    user = 'root',
+    password = 'sherlock15!',
+    database = 'planeit '
 )
 
 current_time = dt.datetime.now()
@@ -25,36 +25,47 @@ def isJson(text):
         return False
 
 def loadsData(year, month):
+
     global yearData
     global monthData
-    filename = 'flyesMonth{year}_{month:0>2}.csv'.format(year = year, month = month)  
+
+    print("Exibindo year e month")
+    print(year, month)
+
+    if (month == monthData):
+        month -= 1
+        print(month)
+        if (month == 0):
+            return
+    
+
+    filename = 'flyesMonth{year}_{month:0>2}.csv'.format(year = year, month = month)
     CSV_URL="https://www.gov.br/anac/pt-br/assuntos/dados-e-estatisticas/percentuais-de-atrasos-e-cancelamentos-2/{year}/vra_{year}_{month:0>2}.csv".format(year = year, month = month)
     with requests.Session() as s:
-        download = s.get(CSV_URL) 
-        if(isJson(download.content)):
-            newMonth = month - 1
-            newYear = year
-            if(newMonth == 0):
-                newMonth = 12
-                newYear -= 1
-            
-            yearData = newYear
-            monthData = newMonth
+            print("dentro do request")
 
-            loadsData(newYear, newMonth)
-        else: 
-            print("Downloaded file: {filename}".format(filename = filename))
-            print(yearData, monthData, year, month)
-            with open( filename, 'wb') as f:
-                f.write(download.content)
+            download = s.get(CSV_URL) 
+            if(isJson(download.content)):
+                print("é json")
+                monthData -= 1
+                loadsData(year, month)
+            else: 
+                print("Downloaded file: {filename}".format(filename = filename))
+                monthData -= 1
+                print(yearData, monthData, year, month)
+                with open( filename, 'wb') as f:
+                    print("arquivo foi aberto")
+                    f.write(download.content)
 
 loadsData(yearData, monthData)
     
 def splitValues(row):
     return row.split(';')
+print("aqui")
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
+print("aqui1")
 
 global lastDatetime
 lastDatetime = ""
@@ -67,9 +78,10 @@ def formatToDate(data):
         lastDatetime = data
         date = dt.datetime.strptime(data, "%d/%m/%Y %H:%M")
     return date.strftime("%Y-%m-%d %H:%M:%S")
-
+print("aqui2")
 print(yearData, monthData)
 with open('flyesMonth{yearData}_{monthData:0>2}.csv'.format(yearData=yearData, monthData=monthData), 'r') as file:
+    print("arquivo aberto")
     rows = file.read().split('\n')
     columns = list(map(splitValues, rows))
 
@@ -82,7 +94,12 @@ with open('flyesMonth{yearData}_{monthData:0>2}.csv'.format(yearData=yearData, m
 
         cursor = pool.cursor()
         cursor.execute("""
-        INSERT INTO teste
+        INSERT INTO voos
             (siglaEmpresaAerea, nVoo, siglaAeroportoOrigem, horaPartidaPrevista, horaPartidaReal, siglaAeroportoDestino, horaChegadaPrevista, horaChegadaReal, situacao)
         VALUES {col}""".format(col = tuple(newColumn)))
         pool.commit()
+
+    if(monthData != 0):
+        print("chamando o próximo mês")
+
+        loadsData(yearData, monthData)

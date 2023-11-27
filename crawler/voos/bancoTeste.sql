@@ -15,8 +15,11 @@ create table teste(
     situacao varchar(30)
 );
 
+select * from teste where siglaAeroportoOrigem = 'KMIA';
+
+select COUNT(siglaAeroportoOrigem) from teste where siglaAeroportoOrigem = 'KMIA';
+
 drop procedure if exists deleteByMonth;
-DROP TEMPORARY TABLE f exits TEMP;
 DELIMITER $$
 CREATE PROCEDURE deleteByMonth(deleteYear int,deleteMonth INT)
 BEGIN 

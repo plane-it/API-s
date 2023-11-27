@@ -83,13 +83,45 @@ def buscarComponentesServidor(fkServidor):
 
     if (idCpu is not None or idRam is not None or idDisco is not None) :
         print(cores.azul + "Componentes encontrados!" + cores.fechamento)
-        buscarMetricas()
+        buscarSpecs()
 
     else:
         print(cores.vermelho + "Houve um erro na procura de componentes, tentaremos novamente"  + cores.fechamento)
         buscarComponentesServidor(fkServidor)
 
-# ================================================================= Buscar Metrica
+# ================================================================= Buscar Specs
+def buscarSpecs() :
+    print(cores.azul + "Verificando existência de especificações" + cores.fechamento)
+
+    if (servidor.verifExistenciaSpecs(idCpu)) :
+        print(cores.verde + "Especificações de CPU já cadastradas!" + cores.fechamento)
+    else :
+        print(cores.azul + "Especificações de CPU ainda não foram cadastradas, iniciando busca..." + cores.fechamento)
+        coletarDadosCpu()
+        operacoesBanco.registrarSpec(dadoCpuFreqTotal, idCpu, 4)
+
+
+    if (servidor.verifExistenciaSpecs(idRam)) :
+        print(cores.verde + "Especificações de RAM já cadastradas!"+ cores.fechamento)
+    else :
+        print(cores.azul + "Especificações de RAM ainda não foram cadastradas, iniciando busca..." + cores.fechamento)
+        coletarDadosRam()
+        operacoesBanco.registrarSpec(dadoRamTotal, idRam, 3)
+
+
+    if (servidor.verifExistenciaSpecs(idDisco)) :
+        print(cores.verde + "Especificações de Disco já cadastradas!"+ cores.fechamento)
+    else :
+        print(cores.azul + "Especificações de Disco ainda não foram cadastradas, iniciando busca..." + cores.fechamento)
+        coletarDadosDisco()
+        operacoesBanco.registrarSpec(dadoHdTotal, idDisco, 3)
+
+    print(cores.verde + "Especificações encontradas com sucesso!" + cores.fechamento)
+    buscarMetricas()
+
+
+
+
 def buscarMetricas():
 
     print(cores.azul + "buscando metricas!" + cores.fechamento)
@@ -111,28 +143,24 @@ def buscarMetricas():
 def criacaoVariaveisMetricaCPU(metricas):
 
     for resultado in metricas:
-        if(resultado[1] == 1):
-            global limiteTemperaturaCpu
-            limiteTemperaturaCpu = resultado[0]
+        medida = resultado[1]
+        valor = resultado[0]
+        fk = resultado[2]
 
-            global fkMetricaLimiteTemperaturaCpu
-            fkMetricaLimiteTemperaturaCpu = resultado[2]
+        if medida == 1:  # Temperatura em graus Celsius
+            global limiteTemperaturaCpu, fkMetricaLimiteTemperaturaCpu
+            limiteTemperaturaCpu = valor
+            fkMetricaLimiteTemperaturaCpu = fk
 
-        elif (resultado[1] == 2):
+        elif medida == 2:  # Uso da CPU em porcentagem
+            global limiteUsoCpu, fkMetricaLimiteUsoCpu
+            limiteUsoCpu = valor
+            fkMetricaLimiteUsoCpu = fk
 
-            global limiteUsoCpu
-            limiteUsoCpu = resultado[0]
-
-            global fkMetricaLimiteUsoCpu
-            fkMetricaLimiteUsoCpu = resultado[2]
-
-        else:
-
-            global limiteFrequenciaCpu
-            limiteFrequenciaCpu = resultado[0]
-
-            global fkMetricaLimiteFrequenciaCpu
-            fkMetricaLimiteFrequenciaCpu = resultado[2]
+        elif medida == 4:  # Frequência da CPU em MHz
+            global limiteFrequenciaCpu, fkMetricaLimiteFrequenciaCpu
+            limiteFrequenciaCpu = valor
+            fkMetricaLimiteFrequenciaCpu = fk
 
 
 def criacaoVariaveisMetricaRam(metricas):
@@ -199,16 +227,36 @@ def exibirDados():
     (Pressione [ESC] para voltar)
                 """)
 
-    global tempoChamado    
-    operacoesBanco.inserirFrequencia(dadoCpuFreq,limiteFrequenciaCpu,idCpu,idServidor,fkMetricaLimiteFrequenciaCpu,tempoChamado)
+    global tempoChamado 
 
-    if(platform.system() == 'Linux'):
+    # CPU ///
+    try:
+        limiteFrequenciaCpu
+    except NameError:
+        limiteFrequenciaCpu = None
+
+    if limiteFrequenciaCpu is not None and fkMetricaLimiteFrequenciaCpu is not None:
+        operacoesBanco.inserirFrequencia(dadoCpuFreq,limiteFrequenciaCpu,idCpu,idServidor,fkMetricaLimiteFrequenciaCpu,tempoChamado)    
+
+    if platform.system() == 'Linux' and limiteTemperaturaCpu is not None and fkMetricaLimiteTemperaturaCpu is not None:
         operacoesBanco.inserirTemperatura(dadoCpuTemperatura,limiteTemperaturaCpu,idCpu,idServidor,fkMetricaLimiteTemperaturaCpu,tempoChamado)
 
-    operacoesBanco.inseritPorcentagemCpu(dadoCpuPercent,limiteUsoCpu,idCpu,idServidor,fkMetricaLimiteUsoCpu,tempoChamado)
+    try:
+        limiteUsoCpu
+    except NameError:
+        limiteUsoCpu = None
+
+    if limiteUsoCpu is not None and fkMetricaLimiteUsoCpu is not None:
+        operacoesBanco.inseritPorcentagemCpu(dadoCpuPercent,limiteUsoCpu,idCpu,idServidor,fkMetricaLimiteUsoCpu,tempoChamado)
+    # ///
     
-    operacoesBanco.inserirHdAtual(dadoHdAtual,limiteGbDisco,idCpu,idServidor,fkMetricalimiteGbDisco,tempoChamado) 
-    operacoesBanco.inserirRamAtual(dadoRamAtual,limiteGbRam,idCpu,idServidor,fkMetricalimiteGbRam,tempoChamado) 
+    # DISCO ///
+    operacoesBanco.inserirHdAtual(dadoHdAtual,limiteGbDisco,idDisco,idServidor,fkMetricalimiteGbDisco,tempoChamado) 
+    #
+
+    # RAM ///
+    operacoesBanco.inserirRamAtual(dadoRamAtual,limiteGbRam,idRam,idServidor,fkMetricalimiteGbRam,tempoChamado) 
+    #
 
     if tempoChamado <= 10:
     
@@ -365,7 +413,9 @@ def coletarDadosCpu():
     
     global dadoCpuPercent
     dadoCpuPercent = round(ps.cpu_percent(), 2) if user.CPUPercent else None
-    
+
+    global dadoCpuFreqTotal
+    dadoCpuFreqTotal = round(ps.cpu_freq().max, 2)
     
     if(platform.system() == 'Linux'):
         global dadoCpuTemperatura
