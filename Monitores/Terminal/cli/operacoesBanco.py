@@ -10,6 +10,8 @@ def inserirFrequencia(frequenciaAtual,frequenciaLimite,idCpu,idServidor,fkMetric
 
     aletar = frequenciaAtual > frequenciaLimite
 
+    print(aletar)
+
     sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
     val = (frequenciaAtual,aletar,idServidor,idCpu,fkMetrica)
 

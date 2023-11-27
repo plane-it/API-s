@@ -6,7 +6,7 @@ from datetime import datetime
 
 def criarChamadoJira(mensagem):
     url = "https://admsptech.atlassian.net/rest/api/2/issue"
-    auth = HTTPBasicAuth("lucas.garcia@sptech.school", "ATATT3xFfGF01wH3eD_ALyB-rC0ZTwvnaMu1ewXtPmO1ZNsZUcPM5X_QcUcBx8NrhURMqh0H3fl5WduF4BCn1ctaGCYGT7neGQNI337yKbhZzjIkazhYPBxxIeHmaRjTELSl0QhhYbYZxotcUnQcU0dASNFLEEbELYSHGW4LDuqsRFSP7zkSbJw=A2C1523C")
+    auth = HTTPBasicAuth("lucas.garcia@sptech.school", "ATATT3xFfGF0SjntMy8T-HXEd-Lee1t5KOfJtoNbGR_Oo199zzm7QbD_UfaWi8omIqSvmwp-7tvd3bBZbR5-FBX10AGxWF-C4UZZl-iohI6Vh2tbt-j_pDkJ4B5eHSAtMCnS66dRon_XzKrH9Olck6Bga2ZTSBsltiiTTDSr-mK68n_pH_mU7AM=04669E6D")
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json"
