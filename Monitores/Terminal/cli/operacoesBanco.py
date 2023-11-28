@@ -12,7 +12,7 @@ def inserirFrequencia(frequenciaAtual,frequenciaLimite,idCpu,idServidor,fkMetric
 
     print(aletar)
 
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
+    sql = "INSERT INTO tbRegistro(valor, datahora, alerta, fkServidor, fkComp, fkMetrica) VALUES ( %s, GETDATE(), %s, %s, %s, %s)"
     val = (frequenciaAtual,aletar,idServidor,idCpu,fkMetrica)
 
     envioBanco(sql,val)
@@ -29,7 +29,7 @@ def inserirTemperatura(temperaturaAtual,temperaturaLimite,idCpu,idServidor,fkMet
     temperaturaAtual = Decimal(temperaturaAtual['coretemp'][0].current)    
     alerta = temperaturaAtual > temperaturaLimite
 
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
+    sql = "INSERT INTO tbRegistro(valor, datahora, alerta, fkServidor, fkComp, fkMetrica) VALUES (%s, GETDATE(), %s, %s, %s, %s)"
     val = (temperaturaAtual, alerta, idServidor, idCpu, fkMetrica)
 
     envioBanco(sql,val)
@@ -44,7 +44,7 @@ def inseritPorcentagemCpu(porcentagemAtual,porcentagemLimite,idCpu,idServidor,fk
 
     aletar = porcentagemAtual > porcentagemLimite
 
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
+    sql = "INSERT INTO tbRegistro(valor, datahora, alerta, fkServidor, fkComp, fkMetrica) VALUES (%s, GETDATE(), %s, %s, %s, %s)"
     val = (porcentagemAtual,aletar,idServidor,idCpu,fkMetrica)
 
     envioBanco(sql,val)
@@ -59,7 +59,7 @@ def inserirHdAtual(usoAtual,usoLimite,idDisco,idServidor,fkMetrica,tempoChamado)
     
     aletar = usoAtual > usoLimite
 
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
+    sql = "INSERT INTO tbRegistro(valor, datahora, alerta, fkServidor, fkComp, fkMetrica) VALUES (%s, GETDATE(), %s, %s, %s, %s)"
     val = (usoAtual,aletar,idServidor,idDisco,fkMetrica)
 
     envioBanco(sql,val)
@@ -75,7 +75,7 @@ def inserirRamAtual(usoAtual,usoLimite,idRam,idServidor,fkMetrica,tempoChamado):
 
     aletar = usoAtual > usoLimite
 
-    sql = "INSERT INTO tbRegistro VALUES (null, %s, now(), %s, %s, %s, %s)"
+    sql = "INSERT INTO tbRegistro(valor, datahora, alerta, fkServidor, fkComp, fkMetrica) VALUES (%s, GETDATE(), %s, %s, %s, %s)"
     val = (usoAtual,aletar,idServidor,idRam,fkMetrica)
 
     envioBanco(sql,val)
@@ -89,23 +89,23 @@ def registrarChamado(idRegistro, valorAtual, valorLimite, idComponente, idServid
 
     if(valorAtual <= (float(valorLimite) * 1.3)):
         mensagem = slack.montarMensagem(idComponente, tipoComponente, idServidor, valorLimite, unidadeMedida, valorAtual, 'Baixa')
-        sql = "INSERT INTO tbChamados VALUES (null,'Baixa','24 horas','Aberto',%s);"
+        sql = "INSERT INTO tbChamados(nivel, sla, estado, fkRegistro) VALUES ('Baixa','24 horas','Aberto',%s);"
 
     elif(valorAtual <= (float(valorLimite) * 1.6)):
         mensagem = slack.montarMensagem(idComponente, tipoComponente, idServidor, valorLimite, unidadeMedida, valorAtual, 'Media')
-        sql = "INSERT INTO tbChamados VALUES (null,'Média','8 horas','Aberto',%s);"
+        sql = "INSERT INTO tbChamados(nivel, sla, estado, fkRegistro) VALUES ('Média','8 horas','Aberto',%s);"
 
     else:
         mensagem = slack.montarMensagem(idComponente, tipoComponente, idServidor, valorLimite, unidadeMedida, valorAtual, 'Alta')
-        sql = "INSERT INTO tbChamados VALUES (null,'Alta','4 horas','Aberto',%s);"
+        sql = "INSERT INTO tbChamados(nivel, sla, estado, fkRegistro) VALUES ('Alta','4 horas','Aberto',%s);"
 
     slack.enviarMensagem(mensagem)
     jira.criarChamadoJira(mensagem)
     envioBanco(sql,[(idRegistro)])
 
-def registrarSpec(valor, idComponente, idUnidadeMedida) :
-    sql = "INSERT INTO tbSpecs VALUES (NULL, %s, %s, %s)"
-    val = [valor, idComponente, idUnidadeMedida]
+def registrarSpec(valor, idComponente, idUnidadeMedida):
+    sql = "INSERT INTO tbSpecs (valor, fkComponente, fkUnidadeMedida) VALUES (%s, %s, %s)"
+    val = (valor, idComponente, idUnidadeMedida)  # Convert list to tuple
 
     envioBanco(sql,val)
 
