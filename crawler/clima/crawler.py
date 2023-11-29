@@ -1,12 +1,14 @@
 import wget;
 import zipfile as zfile;
 import datetime as dt;
+from datetime import datetime
 import csv;
 import mysql.connector as mysql;
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.tsa.arima.model import ARIMA
+import statsmodels.api as sm
 import os
 
 
@@ -82,8 +84,21 @@ def sendDataSudeste(sudeste):
                         continue
                     if(float(precipitacao) > maiorPrecipitacao):
                             maiorPrecipitacao = float(precipitacao)
-                            data = linha[0]
-                       
+                            
+                            linha_data =  str(linha[0])
+
+                            # Convert the date string into a datetime object
+                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
+
+                            # Extract the date part
+                            dataArrumadaSemHora = dataArrumada.date()
+
+                            # Extract the month and day
+                            mesData = dataArrumadaSemHora.strftime("%m")
+                            diaData = dataArrumadaSemHora.strftime("%d")
+
+                            # Combine the month and day into a new date string
+                            data = mesData + '-' + diaData                          
 
                             if precipitacao != '0':
                                 inserirDados = """
@@ -119,7 +134,21 @@ def sendDataSul(sul):
                         continue
                     if(float(precipitacao) > maiorPrecipitacao):
                             maiorPrecipitacao = float(precipitacao)
-                            data = linha[0]
+                            
+                            linha_data =  str(linha[0])
+
+                            # Convert the date string into a datetime object
+                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
+
+                            # Extract the date part
+                            dataArrumadaSemHora = dataArrumada.date()
+
+                            # Extract the month and day
+                            mesData = dataArrumadaSemHora.strftime("%m")
+                            diaData = dataArrumadaSemHora.strftime("%d")
+
+                            # Combine the month and day into a new date string
+                            data = mesData + '-' + diaData     
                     
                     if precipitacao != '0':
                         inserirDados = """
@@ -152,7 +181,21 @@ def sendDataCentro(centroOeste):
                         continue
                     if(float(precipitacao) > maiorPrecipitacao):
                             maiorPrecipitacao = float(precipitacao)
-                            data = linha[0]
+                            
+                            linha_data =  str(linha[0])
+
+                            # Convert the date string into a datetime object
+                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
+
+                            # Extract the date part
+                            dataArrumadaSemHora = dataArrumada.date()
+
+                            # Extract the month and day
+                            mesData = dataArrumadaSemHora.strftime("%m")
+                            diaData = dataArrumadaSemHora.strftime("%d")
+
+                            # Combine the month and day into a new date string
+                            data = mesData + '-' + diaData     
 
                 
                     if precipitacao != '0':
@@ -186,7 +229,21 @@ def sendDataNordeste(nordeste):
                         continue
                     if(float(precipitacao) > maiorPrecipitacao):
                             maiorPrecipitacao = float(precipitacao)
-                            data = linha[0] 
+                            
+                            linha_data =  str(linha[0])
+
+                            # Convert the date string into a datetime object
+                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
+
+                            # Extract the date part
+                            dataArrumadaSemHora = dataArrumada.date()
+
+                            # Extract the month and day
+                            mesData = dataArrumadaSemHora.strftime("%m")
+                            diaData = dataArrumadaSemHora.strftime("%d")
+
+                            # Combine the month and day into a new date string
+                            data = mesData + '-' + diaData     
 
                 
     
@@ -223,7 +280,21 @@ def sendDataNorte(norte):
                         continue
                     if(float(precipitacao) > maiorPrecipitacao):
                             maiorPrecipitacao = float(precipitacao)
-                            data = linha[0]
+                            
+                            linha_data =  str(linha[0])
+
+                            # Convert the date string into a datetime object
+                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
+
+                            # Extract the date part
+                            dataArrumadaSemHora = dataArrumada.date()
+
+                            # Extract the month and day
+                            mesData = dataArrumadaSemHora.strftime("%m")
+                            diaData = dataArrumadaSemHora.strftime("%d")
+
+                            # Combine the month and day into a new date string
+                            data = mesData + '-' + diaData     
 
                     
     
@@ -243,45 +314,36 @@ def sendDataNorte(norte):
     print('Dados enviados para a tabela tbNorte')     
 
 
-def previsaoPorregiao(dados):
+def previsaoPorregiao(conexao, consulta):
 
-    dados_agrupado = []
-    dados_agrupado = dados
-    # Agrupar por 'regiao' e 'dataCompleta', calcular a média e contar
-    dados_agrupado = dados.groupby(['regiao', 'dataCompleta'], as_index=False).agg({'precipitacao': ['mean', 'count']})
+    cursor = conexao.cursor()
 
-    # Renomear as colunas para facilitar o acesso
-    dados_agrupado.columns = ['regiao', 'dataCompleta', 'mean', 'count']
+    # Execute a consulta para obter os dados da tabela tbNordeste
+    cursor.execute(consulta)
+    rows = cursor.fetchall()
 
-    # Criar uma nova coluna com a precipitação média ou o valor original, dependendo da contagem
-    dados_agrupado['mean'] = dados_agrupado.apply(lambda row: round(row['mean'], 1) if row['count'] == 1 else round(row['mean'], 1), axis=1)
+    # Crie um DataFrame com os dados
+    df = pd.DataFrame(rows, columns=[i[0] for i in cursor.description])
 
-    # Remover colunas temporárias
-    dados_agrupado = dados_agrupado.drop(['count'], axis=1)
-    
+    # Converta a coluna dataCompleta para o tipo de data
+    df['dataCompleta'] = pd.to_datetime(df['dataCompleta'], format='%m-%d')
 
-    for index, row in dados_agrupado.iterrows():
-        
-        regiao = row['regiao']
-        dataCompleta = row['dataCompleta']
-        previsao = row['mean']
+    # Calcule a média dos valores de precipitacao agrupados por regiao e dataCompleta
+    df_avg = df.groupby(['regiao', 'dataCompleta'])['precipitacao'].mean().reset_index()
 
-        # Query SQL de inserção
-        query = """
-                    INSERT INTO tbClimaEstado (
-                        regiao, dataCompleta, previsao) 
-                        VALUES (%s, %s, %s)
-                        """
+    # Arredonde a coluna precipitacao para um decimal
+    df_avg['precipitacao'] = df_avg['precipitacao'].round(1)
 
-        valores = (regiao,dataCompleta,previsao)
-            # Executar a query
-        cursor = conexao.cursor()
-        cursor.execute(query, valores)
-        conexao.commit() 
+    # Insira os dados na tabela tbClimaEstado
+    for i, row in df_avg.iterrows():
+        cursor.execute("INSERT INTO tbClimaEstado (regiao, dataCompleta, previsao) VALUES (%s, %s, %s)", (row['regiao'], row['dataCompleta'], row['precipitacao']))
+
+    # Confirme as alterações
+    conexao.commit()
 
     
     
-    print(dados_agrupado)  
+    
 
 
 
@@ -297,34 +359,34 @@ try:
     )
     if conexao.is_connected():
         print('Conxeão estabelecida!')
-        while anos < tempo:
-            findClima(anos)
-            separateClima(anos)
-            anos += 1
+        # while anos < tempo:
+        #     # findClima(anos)
+        #     # separateClima(anos)
+        #     anos += 1
 
-        consulta_Sudeste = "SELECT regiao, dataCompleta, precipitacao FROM tbSudeste ORDER BY regiao, MONTH(dataCompleta), DAY(dataCompleta)"
-        dadosSudeste = pd.read_sql(consulta_Sudeste, conexao, parse_dates=['dataCompleta'])
-        previsaoPorregiao(dadosSudeste)
-
-
-        consulta_Sul = "SELECT regiao, dataCompleta, precipitacao FROM tbSul ORDER BY regiao, MONTH(dataCompleta), DAY(dataCompleta)"
-        dadosSul = pd.read_sql(consulta_Sul, conexao, parse_dates=['dataCompleta'])
-        previsaoPorregiao(dadosSul)
+        consulta_Sudeste = "SELECT regiao, dataCompleta, precipitacao FROM tbSudeste ORDER BY regiao, dataCompleta;"
+        dadosSudeste = pd.read_sql(consulta_Sudeste, conexao)
+        previsaoPorregiao(conexao, consulta_Sudeste)
 
 
-        consulta_CentroOeste = "SELECT regiao, dataCompleta, precipitacao FROM tbCentroOeste ORDER BY regiao, MONTH(dataCompleta), DAY(dataCompleta)"
-        dadosCentroOeste = pd.read_sql(consulta_CentroOeste, conexao, parse_dates=['dataCompleta'])
-        previsaoPorregiao(dadosCentroOeste)
+        consulta_Sul = "SELECT regiao, dataCompleta, precipitacao FROM tbSul ORDER BY regiao, dataCompleta;"
+        dadosSul = pd.read_sql(consulta_Sul, conexao)
+        previsaoPorregiao(conexao, consulta_Sul)
 
 
-        consulta_Nordeste = "SELECT regiao, dataCompleta, precipitacao FROM tbNordeste ORDER BY regiao, MONTH(dataCompleta), DAY(dataCompleta)"
-        dadosNordeste = pd.read_sql(consulta_Nordeste, conexao, parse_dates=['dataCompleta'])
-        previsaoPorregiao(dadosNordeste)
+        consulta_CentroOeste = "SELECT regiao, dataCompleta, precipitacao FROM tbCentroOeste ORDER BY regiao, dataCompleta;"
+        dadosCentroOeste = pd.read_sql(consulta_CentroOeste, conexao)
+        previsaoPorregiao(conexao, consulta_CentroOeste)
 
 
-        consulta_Norte = "SELECT regiao, dataCompleta, precipitacao FROM tbNorte ORDER BY regiao, MONTH(dataCompleta), DAY(dataCompleta)"
-        dadosNorte = pd.read_sql(consulta_Norte, conexao, parse_dates=['dataCompleta'])
-        previsaoPorregiao(dadosNorte)
+        consulta_Nordeste = "SELECT regiao, dataCompleta, precipitacao FROM tbNordeste ORDER BY regiao, dataCompleta;"
+        dadosNordeste = pd.read_sql(consulta_Nordeste, conexao)
+        previsaoPorregiao(conexao, consulta_Nordeste)
+
+
+        consulta_Norte = "SELECT regiao, dataCompleta, precipitacao FROM tbNorte ORDER BY regiao, dataCompleta;"
+        dadosNorte = pd.read_sql(consulta_Norte, conexao)
+        previsaoPorregiao(conexao, consulta_Norte)
             
 except Exception as error:
     print(f"Ocorreu um {error}")

@@ -35,12 +35,25 @@ quantidadeMes = []
 
 
 def getMeses():
+
+    meses = {
+    "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
+    "Julho": 7, "Agosto": 8, "Setembro": 9, "Outubro": 10, "Novembro": 11, "Dezembro": 12
+    }
+
     for month in holidays_month:
         # Extraia o nome do produto
 
         nomeMes = month.find_all("span", class_ = "holidays-month")
+
         for mes in nomeMes:
-            vectorMeses.append(mes.text)
+            nomeDoMes = mes.text
+            numero_do_mes = meses.get(nomeDoMes, None)
+            if numero_do_mes is not None:
+                vectorMeses.append(numero_do_mes)
+            else:
+                print("Mês inválido")
+
 
 def quantidadeFeriadosMes(conjuntoQuantidade):
     qtd = 0

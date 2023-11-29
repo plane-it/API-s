@@ -114,13 +114,14 @@ def buscarSpecs() :
     else :
         print(cores.azul + "Especificações de Disco ainda não foram cadastradas, iniciando busca..." + cores.fechamento)
         coletarDadosDisco()
+
         operacoesBanco.registrarSpec(dadoHdTotal, idDisco, 3)
 
     print(cores.verde + "Especificações encontradas com sucesso!" + cores.fechamento)
     buscarMetricas()
 
 
-
+global limiteFrequenciaCpu, fkMetricaLimiteFrequenciaCpu, limiteUsoCpu, fkMetricaLimiteUsoCpu, limiteTemperaturaCpu, fkMetricaLimiteTemperaturaCpu
 
 def buscarMetricas():
 
@@ -131,6 +132,7 @@ def buscarMetricas():
     metricasDisco = servidor.metricas(idDisco)
 
     criacaoVariaveisMetricaCPU(metricasCPU)
+    input()
     criacaoVariaveisMetricaRam(metricasRam)
     criacaoVariaveisMetricaDisco(metricasDisco)
 
@@ -141,27 +143,24 @@ def buscarMetricas():
 
 # ================================================================= Criação das variaveis das metricas
 def criacaoVariaveisMetricaCPU(metricas):
+    print(metricas)
 
     for resultado in metricas:
-        medida = resultado[1]
-        valor = resultado[0]
-        fk = resultado[2]
+        print(metricas)
+        valor, medida, fk = resultado
+        print(medida)
 
-        if medida == 1:  # Temperatura em graus Celsius
+        if medida == 1:
             global limiteTemperaturaCpu, fkMetricaLimiteTemperaturaCpu
-            limiteTemperaturaCpu = valor
-            fkMetricaLimiteTemperaturaCpu = fk
+            limiteTemperaturaCpu, fkMetricaLimiteTemperaturaCpu = valor, fk
 
-        elif medida == 2:  # Uso da CPU em porcentagem
+        elif medida == 2:
             global limiteUsoCpu, fkMetricaLimiteUsoCpu
-            limiteUsoCpu = valor
-            fkMetricaLimiteUsoCpu = fk
+            limiteUsoCpu, fkMetricaLimiteUsoCpu = valor, fk
 
-        elif medida == 4:  # Frequência da CPU em MHz
+        elif medida == 4:
             global limiteFrequenciaCpu, fkMetricaLimiteFrequenciaCpu
-            limiteFrequenciaCpu = valor
-            fkMetricaLimiteFrequenciaCpu = fk
-
+            limiteFrequenciaCpu, fkMetricaLimiteFrequenciaCpu = valor, fk
 
 def criacaoVariaveisMetricaRam(metricas):
     global limiteGbRam
@@ -198,8 +197,8 @@ def exibirDados():
     coletarDadosCpu()    
     coletarDadosDisco()
     coletarDadosRam()
-
     os.system('cls' if os.name == 'nt' else 'clear')
+
     print(f"""
                                     CPU
     ===========================================================================
@@ -229,16 +228,29 @@ def exibirDados():
 
     global tempoChamado 
 
-    # CPU ///
-    if limiteFrequenciaCpu is not None and fkMetricaLimiteFrequenciaCpu is not None:
-        operacoesBanco.inserirFrequencia(dadoCpuFreq,limiteFrequenciaCpu,idCpu,idServidor,fkMetricaLimiteFrequenciaCpu,tempoChamado)
 
-    if platform.system() == 'Linux' and limiteTemperaturaCpu is not None and fkMetricaLimiteTemperaturaCpu is not None:
-        operacoesBanco.inserirTemperatura(dadoCpuTemperatura,limiteTemperaturaCpu,idCpu,idServidor,fkMetricaLimiteTemperaturaCpu,tempoChamado)
+    global limiteTemperaturaCpu, fkMetricaLimiteTemperaturaCpu
+    global limiteUsoCpu, fkMetricaLimiteUsoCpu
+    global limiteFrequenciaCpu, fkMetricaLimiteFrequenciaCpu
 
-    if limiteUsoCpu is not None and fkMetricaLimiteUsoCpu is not None:
-        operacoesBanco.inseritPorcentagemCpu(dadoCpuPercent,limiteUsoCpu,idCpu,idServidor,fkMetricaLimiteUsoCpu,tempoChamado)
-    # ///
+
+    try:
+        if limiteFrequenciaCpu is not None and fkMetricaLimiteFrequenciaCpu is not None:
+            operacoesBanco.inserirFrequencia(dadoCpuFreq,limiteFrequenciaCpu,idCpu,idServidor,fkMetricaLimiteFrequenciaCpu,tempoChamado)    
+    except NameError:
+        pass
+
+    try:
+        if platform.system() == 'Linux' and limiteTemperaturaCpu is not None and fkMetricaLimiteTemperaturaCpu is not None:
+            operacoesBanco.inserirTemperatura(dadoCpuTemperatura,limiteTemperaturaCpu,idCpu,idServidor,fkMetricaLimiteTemperaturaCpu,tempoChamado)
+    except NameError:
+        pass
+
+    try:
+        if limiteUsoCpu is not None and fkMetricaLimiteUsoCpu is not None:
+            operacoesBanco.inseritPorcentagemCpu(dadoCpuPercent,limiteUsoCpu,idCpu,idServidor,fkMetricaLimiteUsoCpu,tempoChamado)
+    except NameError:
+        pass
     
     # DISCO ///
     operacoesBanco.inserirHdAtual(dadoHdAtual,limiteGbDisco,idDisco,idServidor,fkMetricalimiteGbDisco,tempoChamado) 
