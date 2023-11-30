@@ -3,21 +3,19 @@ package plane.it.banco;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public class Conexao {
-
-    private JdbcTemplate conexaoDoBanco;
-
-    public Conexao() {
+public class ConexaoSql {
+    private JdbcTemplate conexaoDoBancoSql;
+    public ConexaoSql() {
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://localhost/planeit");
+        dataSource.setUrl("jdbc:sqlserver://SEU_IP:44.218.73.236;databaseName=planeit");
         dataSource.setUsername("root");
-        dataSource.setPassword("0108Oliver");
+        dataSource.setPassword("urubu100");
 
-        conexaoDoBanco = new JdbcTemplate(dataSource);
+        conexaoDoBancoSql = new JdbcTemplate(dataSource);
     }
 
     public JdbcTemplate getConexaoBanco() {
-        return conexaoDoBanco;
+        return conexaoDoBancoSql;
     }
 }

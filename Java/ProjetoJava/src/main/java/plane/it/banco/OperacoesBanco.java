@@ -14,7 +14,10 @@ import java.util.List;
 public class OperacoesBanco {
 
     Conexao conexao = new Conexao();
+    ConexaoSql conexaoSql = new ConexaoSql();
     JdbcTemplate con = conexao.getConexaoBanco();
+    JdbcTemplate conSql = conexaoSql.getConexaoBanco();
+
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     LocalDateTime dataAtual = LocalDateTime.now();
     private int servidor;
@@ -31,6 +34,7 @@ public class OperacoesBanco {
                 "SELECT * FROM tbColaborador WHERE senha = ? AND email = ?",
                 new BeanPropertyRowMapper <>(Usuario.class),senha,email);
 
+
         if (!listaUsuario.isEmpty()){
 
             return listaUsuario.get(0).getFkAeroporto();
@@ -40,7 +44,6 @@ public class OperacoesBanco {
             return null;
 
         }
-
 
     }
 
@@ -65,12 +68,14 @@ public class OperacoesBanco {
 
     public void sistemaOperacional(String sistemaOperacional){
         con.update("UPDATE tbServidor SET sistemaOP = ? WHERE idServ = ?;",sistemaOperacional,servidor);
+        conSql.update("UPDATE tbServidor SET sistemaOP = ? WHERE idServ = ?;",sistemaOperacional,servidor);
 
     }
 
    public void  memoriaRamTotal(Long total){
         Double totalMemoria = converter(total);
         con.update("INSERT INTO tbMetrica VALUES(NULL,?,2,1)",totalMemoria);
+        conSql.update("INSERT INTO tbMetrica VALUES(DEFAULT,?,2,1)",totalMemoria);
    }
 
    public void memoriaRamEmUso(Long memoriaEmUso,Long total){
@@ -81,32 +86,45 @@ public class OperacoesBanco {
 
        con.update("INSERT INTO tbRegistro VALUES(NULL,?,?,?,?,2,1)",totalMemoriaEmUso,
                formatter.format(dataAtual), alerta,servidor);
+       con.update("INSERT INTO tbRegistro VALUES(DEFAULT,?,?,?,?,2,1)",totalMemoriaEmUso,
+               formatter.format(dataAtual), alerta,servidor);
 
     }
 
     public void nomeProcessador(String nome){
         con.update("UPDATE tbComponente SET nome = ? WHERE idComp = 1;",nome);
+        conSql.update("UPDATE tbComponente SET nome = ? WHERE idComp = 1;",nome);
+
     }
 
     public void frequenciaProcessador(Long frequencia){
         Double frequenciaTratada = (double) frequencia / 1000000000;
         con.update("INSERT INTO tbRegistro VALUES(NULL,?,?,?,?,1,2)",frequenciaTratada,
                 formatter.format(dataAtual), false,servidor);
+        conSql.update("INSERT INTO tbRegistro VALUES(DEFAULT,?,?,?,?,1,2)",frequenciaTratada,
+                formatter.format(dataAtual), false,servidor);
     }
 
     public void usoProcessador(Double uso){
         con.update("INSERT INTO tbRegistro VALUES(NULL,?,?,?,?,1,2)",uso, formatter.format(dataAtual), false,
                 servidor);
+        conSql.update("INSERT INTO tbRegistro VALUES(DEFAULT,?,?,?,?,1,2)",uso, formatter.format(dataAtual), false,
+                servidor);
+
 
     }
 
     public void nucleosProcessador(Integer nuclesFisicos){
         con.update("INSERT INTO tbRegistro VALUES(NULL,?,?,?,?,null,4)",nuclesFisicos,
                 formatter.format(dataAtual), false,servidor);
+        conSql.update("INSERT INTO tbRegistro VALUES(DEFAULT,?,?,?,?,null,4)",nuclesFisicos,
+                formatter.format(dataAtual), false,servidor);
     }
 
     public void temperatura(Double temperatura){
         con.update("INSERT INTO tbRegistro VALUES(NULL,?,?,?,?,1,3)",temperatura, formatter.format(dataAtual),
+                false,servidor);
+        conSql.update("INSERT INTO tbRegistro VALUES(DEFAULT,?,?,?,?,1,3)",temperatura, formatter.format(dataAtual),
                 false,servidor);
 
     }
@@ -114,11 +132,14 @@ public class OperacoesBanco {
     public void volumeTotal(Long volumeTotal){
         Double volumeTotalTratado = converter(volumeTotal);
         con.update("INSERT INTO tbMetrica VALUES(NULL,?,3,1)",volumeTotalTratado);
+        conSql.update("INSERT INTO tbMetrica VALUES(DEFAULT,?,3,1)",volumeTotalTratado);
     }
 
     public void volumeEmUso(Long volumeDisponivel,Long volumeTotal){
         Double volumeEmUsoTratado = converter(volumeTotal) - converter(volumeDisponivel);
         con.update("INSERT INTO tbRegistro VALUES(NULL,?,?,?,?,3,4)",volumeEmUsoTratado,
+                formatter.format(dataAtual),false,servidor);
+        conSql.update("INSERT INTO tbRegistro VALUES(DEFAULT,?,?,?,?,3,4)",volumeEmUsoTratado,
                 formatter.format(dataAtual),false,servidor);
 
     }
@@ -127,6 +148,8 @@ public class OperacoesBanco {
 
     public void quatidadeProcessos(Integer quatidadeProcessos){
         con.update("INSERT INTO tbRegistro VALUES(NULL,?,?,?,?,NULL,5)",quatidadeProcessos,
+                formatter.format(dataAtual),false,servidor);
+        conSql.update("INSERT INTO tbRegistro VALUES(DEFAULT,?,?,?,?,NULL,5)",quatidadeProcessos,
                 formatter.format(dataAtual),false,servidor);
     }
 
@@ -163,6 +186,7 @@ public class OperacoesBanco {
 
             String sql = "INSERT INTO tbSpecs (valor, fkComponente, fkUnidadeMedida) VALUES (?, ?, ?)";
             con.update(sql, valor, fkComp, fkMedida);
+            conSql.update(sql, valor, fkComp, fkMedida);
             return true;
 
         } catch (Exception e) {
