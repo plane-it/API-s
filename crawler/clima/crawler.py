@@ -2,14 +2,10 @@ import wget;
 import zipfile as zfile;
 import datetime as dt;
 from datetime import datetime
-import csv;
 import mysql.connector as mysql;
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from statsmodels.tsa.arima.model import ARIMA
-import statsmodels.api as sm
 import os
+import pymssql
 
 
 
@@ -35,284 +31,65 @@ def findClima(ano):
         print("Pasta extraída com sucesso")  
 
 def separateClima(ano):
-    sudeste= []
-    nordeste = []
-    norte = []
-    sul = []
-    centroOeste = []
     path = f'{ano}'
     print("Separando os arquivos por regiões do Brasil")
     for i in os.listdir(path):
         arquivos = os.path.join(path,i)
         if "INMET_SE" in arquivos:
-            sudeste.append(arquivos)
+            inserirDados = """
+                INSERT INTO tbSudeste(
+                        localizacao,regiao,dataCompleta,precipitacao)
+                VALUES (%s,%s,%s,%s)
+                """
         elif "INMET_S" in arquivos:
-            sul.append(arquivos)
+            inserirDados = """
+                INSERT INTO tbSul(
+                        localizacao,regiao,dataCompleta,precipitacao)
+                VALUES (%s,%s,%s,%s)
+            """
         elif "INMET_CO" in arquivos:
-            centroOeste.append(arquivos)
+            inserirDados = """
+                INSERT INTO tbCentroOeste(
+                        localizacao,regiao,dataCompleta,precipitacao)
+                VALUES (%s,%s,%s,%s)
+            """
         elif "INMET_NE" in arquivos:
-            nordeste.append(arquivos)
+            inserirDados = """
+                INSERT INTO tbNordeste(
+                        localizacao,regiao,dataCompleta,precipitacao)
+                VALUES (%s,%s,%s,%s)
+            """
         elif "INMET_N" in arquivos:
-            norte.append(arquivos)
+            inserirDados = """
+                INSERT INTO tbNorte(
+                        localizacao,regiao,dataCompleta,precipitacao)
+                VALUES (%s,%s,%s,%s)
+            """
 
-    sendDataSudeste(sudeste)
-    sendDataSul(sul)   
-    sendDataCentro(centroOeste)
-    sendDataNordeste(nordeste)
-    sendDataNorte(norte)
-
-
-
-def sendDataSudeste(sudeste):
-
-    dados_sudeste = []
-
-    maiorPrecipitacao = 0
-    print('Tratando os dados de cada arquivo da região Sudeste')
-    for i in sudeste:
-        with open(i,'r') as file:
+        with open(arquivos,'r') as file:
             leitor = file.read().split("\n")
             regiao = leitor[1]
             localRegiao = regiao[4:6] 
             estacao = leitor[2]
             localEstacao = estacao[9:]
-            for idx in leitor[10:len(leitor)-2]:
-                linha = idx.split(";")
-                if linha != ['']:
-                    precipitacao = linha[2].replace(",",".") 
-                    if precipitacao == '' or precipitacao == '0':
-                        continue
-                    if(float(precipitacao) > maiorPrecipitacao):
-                            maiorPrecipitacao = float(precipitacao)
-                            
-                            linha_data =  str(linha[0])
 
-                            # Convert the date string into a datetime object
-                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
-
-                            # Extract the date part
-                            dataArrumadaSemHora = dataArrumada.date()
-
-                            # Extract the month and day
-                            mesData = dataArrumadaSemHora.strftime("%m")
-                            diaData = dataArrumadaSemHora.strftime("%d")
-
-                            # Combine the month and day into a new date string
-                            data = mesData + '-' + diaData                          
-
-                            if precipitacao != '0':
-                                inserirDados = """
-                                INSERT INTO tbSudeste(
-                                        localizacao,regiao,dataCompleta,precipitacao)
-                                VALUES (%s,%s,%s,%s)
-                                """
-                                valores = (localEstacao,localRegiao,data,precipitacao)
-                                cursor = conexao.cursor()
-                                cursor.execute(inserirDados,valores)
-                                conexao.commit() 
-                               
-        maiorPrecipitacao = 0
-                    
-    print('Dados enviados para a tabela tbSudeste')   
-
-
-
-def sendDataSul(sul):
-    maiorPrecipitacao = 0
-    for i in sul:
-        with open(i,'r') as file:
-            leitor = file.read().split("\n")
-            regiao = leitor[1]
-            localRegiao = regiao[4:6] 
-            estacao = leitor[2]
-            localEstacao = estacao[9:]
-            for idx in leitor[10:len(leitor)-2]:
-                linha = idx.split(";")
-                if linha != ['']:
-                    precipitacao = linha[2].replace(",",".") 
-                    if precipitacao == '' or precipitacao == '0':
-                        continue
-                    if(float(precipitacao) > maiorPrecipitacao):
-                            maiorPrecipitacao = float(precipitacao)
-                            
-                            linha_data =  str(linha[0])
-
-                            # Convert the date string into a datetime object
-                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
-
-                            # Extract the date part
-                            dataArrumadaSemHora = dataArrumada.date()
-
-                            # Extract the month and day
-                            mesData = dataArrumadaSemHora.strftime("%m")
-                            diaData = dataArrumadaSemHora.strftime("%d")
-
-                            # Combine the month and day into a new date string
-                            data = mesData + '-' + diaData     
-                    
-                    if precipitacao != '0':
-                        inserirDados = """
-                        INSERT INTO tbSul(
-                                localizacao,regiao,dataCompleta,precipitacao)
-                        VALUES (%s,%s,%s,%s)
-                        """
-                        valores = (localEstacao,localRegiao,data,precipitacao)
-                        cursor = conexao.cursor()
-                        cursor.execute(inserirDados,valores)
-                        conexao.commit() 
             maiorPrecipitacao = 0
-                    
-    print('Dados enviados para a tabela tbSul')
-
-def sendDataCentro(centroOeste):
-    maiorPrecipitacao = 0
-    for i in centroOeste:
-        with open(i,'r') as file:
-            leitor = file.read().split("\n")
-            regiao = leitor[1]
-            localRegiao = regiao[4:6] 
-            estacao = leitor[2]
-            localEstacao = estacao[9:]
-            for idx in leitor[10:len(leitor)-2]:
+            for index, idx in enumerate(leitor[10:len(leitor)-2]):
                 linha = idx.split(";")
+
                 if linha != ['']:
-                    precipitacao = linha[2].replace(",",".") 
-                    if precipitacao == '' or precipitacao == '0':
-                        continue
-                    if(float(precipitacao) > maiorPrecipitacao):
+                    precipitacao = linha[2].replace(",",".")
+                    if(index == 0 or linha[0] == leitor[index+9].split(";")[0]):
+                        if(precipitacao != '' and float(precipitacao) > maiorPrecipitacao):
                             maiorPrecipitacao = float(precipitacao)
-                            
-                            linha_data =  str(linha[0])
-
-                            # Convert the date string into a datetime object
-                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
-
-                            # Extract the date part
-                            dataArrumadaSemHora = dataArrumada.date()
-
-                            # Extract the month and day
-                            mesData = dataArrumadaSemHora.strftime("%m")
-                            diaData = dataArrumadaSemHora.strftime("%d")
-
-                            # Combine the month and day into a new date string
-                            data = mesData + '-' + diaData     
-
-                
-                    if precipitacao != '0':
-                        inserirDados = """
-                        INSERT INTO tbCentroOeste(
-                                localizacao,regiao,dataCompleta,precipitacao)
-                        VALUES (%s,%s,%s,%s)
-                        """
-                        valores = (localEstacao,localRegiao,data,precipitacao)
-                        cursor = conexao.cursor()
-                        cursor.execute(inserirDados,valores)
-                        conexao.commit() 
-            maiorPrecipitacao = 0
-                    
-    print('Dados enviados para a tabela tbCentroOeste') 
-
-def sendDataNordeste(nordeste):
-    maiorPrecipitacao = 0
-    for i in nordeste:
-        with open(i,'r') as file:
-            leitor = file.read().split("\n")
-            regiao = leitor[1]
-            localRegiao = regiao[4:6] 
-            estacao = leitor[2]
-            localEstacao = estacao[9:]
-            for idx in leitor[10:len(leitor)-2]:
-                linha = idx.split(";")
-                if linha != ['']:
-                    precipitacao = linha[2].replace(",",".") 
-                    if precipitacao == '' or precipitacao == '0':
-                        continue
-                    if(float(precipitacao) > maiorPrecipitacao):
-                            maiorPrecipitacao = float(precipitacao)
-                            
-                            linha_data =  str(linha[0])
-
-                            # Convert the date string into a datetime object
-                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
-
-                            # Extract the date part
-                            dataArrumadaSemHora = dataArrumada.date()
-
-                            # Extract the month and day
-                            mesData = dataArrumadaSemHora.strftime("%m")
-                            diaData = dataArrumadaSemHora.strftime("%d")
-
-                            # Combine the month and day into a new date string
-                            data = mesData + '-' + diaData     
-
-                
-    
-
-                    if precipitacao != '0':
-                        inserirDados = """
-                        INSERT INTO tbNordeste(
-                                localizacao,regiao,dataCompleta,precipitacao)
-                        VALUES (%s,%s,%s,%s)
-                        """
-                        valores = (localEstacao,localRegiao,data,precipitacao)
-                        cursor = conexao.cursor()
-                        cursor.execute(inserirDados,valores)
-                        conexao.commit() 
-            maiorPrecipitacao = 0
-                    
-    print('Dados enviados para a tabela tbNordeste') 
-
-def sendDataNorte(norte):
-    maiorPrecipitacao = 0
-
-    for i in norte:
-        with open(i,'r') as file:
-            leitor = file.read().split("\n")
-            regiao = leitor[1]
-            localRegiao = regiao[4:6] 
-            estacao = leitor[2]
-            localEstacao = estacao[9:]
-            for idx in leitor[10:len(leitor)-2]:
-                linha = idx.split(";")
-                if linha != ['']:
-                    precipitacao = linha[2].replace(",",".") 
-                    if precipitacao == '' or precipitacao == '0':
-                        continue
-                    if(float(precipitacao) > maiorPrecipitacao):
-                            maiorPrecipitacao = float(precipitacao)
-                            
-                            linha_data =  str(linha[0])
-
-                            # Convert the date string into a datetime object
-                            dataArrumada = datetime.strptime(linha_data, "%Y/%m/%d")
-
-                            # Extract the date part
-                            dataArrumadaSemHora = dataArrumada.date()
-
-                            # Extract the month and day
-                            mesData = dataArrumadaSemHora.strftime("%m")
-                            diaData = dataArrumadaSemHora.strftime("%d")
-
-                            # Combine the month and day into a new date string
-                            data = mesData + '-' + diaData     
-
-                    
-    
-
-                    if precipitacao != '0':
-                        inserirDados = """
-                        INSERT INTO tbNorte(
-                                localizacao,regiao,dataCompleta,precipitacao)
-                        VALUES (%s,%s,%s,%s)
-                        """
-                        valores = (localEstacao,localRegiao,data,precipitacao)
-                        cursor = conexao.cursor()
-                        cursor.execute(inserirDados,valores)
-                        conexao.commit() 
-            maiorPrecipitacao = 0
-                    
-    print('Dados enviados para a tabela tbNorte')     
-
+                    else:
+                        dataArrumada = datetime.strptime(str(linha[0]), "%Y/%m/%d")
+                        if maiorPrecipitacao != 0:
+                            valores = (localEstacao,localRegiao,dataArrumada,maiorPrecipitacao)
+                            cursor = conexao.cursor()
+                            cursor.execute(inserirDados,valores)
+                            conexao.commit()
+                        maiorPrecipitacao = 0
 
 def previsaoPorregiao(conexao, consulta):
 
@@ -341,53 +118,46 @@ def previsaoPorregiao(conexao, consulta):
     # Confirme as alterações
     conexao.commit()
 
-    
-    
-    
-
-
-
-
 anos = 2021
 try:
-    conexao = mysql.connect(
-        host = 'localhost',
-        user = 'root',
-        password = 'sherlock15!',
-        database = 'planeit',
-        port = '3306'
-    )
-    if conexao.is_connected():
-        print('Conxeão estabelecida!')
-        # while anos < tempo:
-        #     # findClima(anos)
-        #     # separateClima(anos)
-        #     anos += 1
+    server = 'localhost'
+    database = 'planeit'
+    username = 'teste'
+    password = '123'
+    port = '1433'  # Default SQL Server port
 
-        consulta_Sudeste = "SELECT regiao, dataCompleta, precipitacao FROM tbSudeste ORDER BY regiao, dataCompleta;"
-        dadosSudeste = pd.read_sql(consulta_Sudeste, conexao)
-        previsaoPorregiao(conexao, consulta_Sudeste)
+    conexao = pymssql.connect(server=server, user=username, password=password, database=database, port=port)
 
+    print('Conxeão estabelecida!')
+    while anos < tempo:
+        findClima(anos)
+        separateClima(anos)
+        anos += 1
 
-        consulta_Sul = "SELECT regiao, dataCompleta, precipitacao FROM tbSul ORDER BY regiao, dataCompleta;"
-        dadosSul = pd.read_sql(consulta_Sul, conexao)
-        previsaoPorregiao(conexao, consulta_Sul)
+    consulta_Sudeste = "SELECT regiao, dataCompleta, precipitacao FROM tbSudeste ORDER BY regiao, dataCompleta;"
+    # dadosSudeste = pd.read_sql(consulta_Sudeste, conexao)
+    previsaoPorregiao(conexao, consulta_Sudeste)
 
 
-        consulta_CentroOeste = "SELECT regiao, dataCompleta, precipitacao FROM tbCentroOeste ORDER BY regiao, dataCompleta;"
-        dadosCentroOeste = pd.read_sql(consulta_CentroOeste, conexao)
-        previsaoPorregiao(conexao, consulta_CentroOeste)
+    consulta_Sul = "SELECT regiao, dataCompleta, precipitacao FROM tbSul ORDER BY regiao, dataCompleta;"
+    # dadosSul = pd.read_sql(consulta_Sul, conexao)
+    previsaoPorregiao(conexao, consulta_Sul)
 
 
-        consulta_Nordeste = "SELECT regiao, dataCompleta, precipitacao FROM tbNordeste ORDER BY regiao, dataCompleta;"
-        dadosNordeste = pd.read_sql(consulta_Nordeste, conexao)
-        previsaoPorregiao(conexao, consulta_Nordeste)
+    consulta_CentroOeste = "SELECT regiao, dataCompleta, precipitacao FROM tbCentroOeste ORDER BY regiao, dataCompleta;"
+    # dadosCentroOeste = pd.read_sql(consulta_CentroOeste, conexao)
+    previsaoPorregiao(conexao, consulta_CentroOeste)
 
 
-        consulta_Norte = "SELECT regiao, dataCompleta, precipitacao FROM tbNorte ORDER BY regiao, dataCompleta;"
-        dadosNorte = pd.read_sql(consulta_Norte, conexao)
-        previsaoPorregiao(conexao, consulta_Norte)
-            
+    consulta_Nordeste = "SELECT regiao, dataCompleta, precipitacao FROM tbNordeste ORDER BY regiao, dataCompleta;"
+    # dadosNordeste = pd.read_sql(consulta_Nordeste, conexao)
+    previsaoPorregiao(conexao, consulta_Nordeste)
+
+
+    consulta_Norte = "SELECT regiao, dataCompleta, precipitacao FROM tbNorte ORDER BY regiao, dataCompleta;"
+    # dadosNorte = pd.read_sql(consulta_Norte, conexao)
+    previsaoPorregiao(conexao, consulta_Norte)
+        
 except Exception as error:
     print(f"Ocorreu um {error}")
 finally:
