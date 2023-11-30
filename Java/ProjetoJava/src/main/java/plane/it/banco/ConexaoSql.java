@@ -7,10 +7,10 @@ public class ConexaoSql {
     private JdbcTemplate conexaoDoBancoSql;
     public ConexaoSql() {
         BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:sqlserver://SEU_IP:44.218.73.236;databaseName=planeit");
-        dataSource.setUsername("root");
-        dataSource.setPassword("urubu100");
+        dataSource.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+        dataSource.setUrl("jdbc:sqlserver://44.218.73.236:1433;databaseName=planeit");
+        dataSource.setUsername("planeit");
+        dataSource.setPassword("planeit123");
 
         conexaoDoBancoSql = new JdbcTemplate(dataSource);
     }
