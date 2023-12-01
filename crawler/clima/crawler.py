@@ -101,19 +101,45 @@ def previsaoPorregiao(conexao, consulta):
 
     # Crie um DataFrame com os dados
     df = pd.DataFrame(rows, columns=[i[0] for i in cursor.description])
+    print("criando o df")
 
     # Converta a coluna dataCompleta para o tipo de data
     df['dataCompleta'] = pd.to_datetime(df['dataCompleta'], format='%m-%d')
+    print("arrumando a data")
+    # print(df['dataCompleta'])
 
-    # Calcule a média dos valores de precipitacao agrupados por regiao e dataCompleta
-    df_avg = df.groupby(['regiao', 'dataCompleta'])['precipitacao'].mean().reset_index()
 
-    # Arredonde a coluna precipitacao para um decimal
-    df_avg['precipitacao'] = df_avg['precipitacao'].round(1)
+    df.set_index('dataCompleta', inplace=True)
+    print("colocando a data como index")
 
-    # Insira os dados na tabela tbClimaEstado
-    for i, row in df_avg.iterrows():
-        cursor.execute("INSERT INTO tbClimaEstado (regiao, dataCompleta, previsao) VALUES (%s, %s, %s)", (row['regiao'], row['dataCompleta'], row['precipitacao']))
+    # Ajustando o modelo ARIMA
+    modelo = ARIMA(df['precipitacao'], order=(2,1,0))
+    modelo_ajustado = modelo.fit()
+    print("modelo arima criado")
+
+    inicio = len(df)
+    fim = 2 * inicio
+
+    previsao = modelo_ajustado.predict(start=inicio, end=fim)
+
+    # Cria um novo DataFrame para as previsões
+    df_previsao = pd.DataFrame(previsao)
+
+    # # Concatena o DataFrame original com o novo DataFrame de previsões
+    # df_completo = pd.concat([df, df_previsao])
+
+
+    print(df_previsao)
+
+    # # Calcule a média dos valores de precipitacao agrupados por regiao e dataCompleta
+    # df_avg = df.groupby(['regiao', 'dataCompleta'])['precipitacao'].mean().reset_index()
+
+    # # Arredonde a coluna precipitacao para um decimal
+    # df_avg['precipitacao'] = df_avg['precipitacao'].round(1)
+
+    # # Insira os dados na tabela tbClimaEstado
+    # for i, row in df_avg.iterrows():
+    #     cursor.execute("INSERT INTO tbClimaEstado (regiao, dataCompleta, previsao) VALUES (%s, %s, %s)", (row['regiao'], row['dataCompleta'], row['precipitacao']))
 
     # Confirme as alterações
     conexao.commit()
