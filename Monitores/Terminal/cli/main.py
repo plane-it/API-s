@@ -132,7 +132,6 @@ def buscarMetricas():
     metricasDisco = servidor.metricas(idDisco)
 
     criacaoVariaveisMetricaCPU(metricasCPU)
-    input()
     criacaoVariaveisMetricaRam(metricasRam)
     criacaoVariaveisMetricaDisco(metricasDisco)
 
